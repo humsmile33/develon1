@@ -519,18 +519,16 @@
                     <table class="gold-table">
                         <thead>
                             <tr>
-                                <th style="width: 15%;">날짜</th>
-                                <th style="width: 15%;">시가</th>
-                                <th style="width: 15%;">고가</th>
-                                <th style="width: 15%;">저가</th>
-                                <th style="width: 15%;">종가</th>
-                                <th style="width: 15%;">변동률</th>
-                                <th style="width: 10%;">추세</th>
+                                <th style="width: 20%;">날짜</th>
+                                <th style="width: 20%;">내가살때 순금 3.75g</th>
+                                <th style="width: 20%;">내가팔때 순금 3.75g</th>
+                                <th style="width: 20%;">내가팔때 18K 3.75g</th>
+                                <th style="width: 20%;">내가팔때 14K 3.75g</th>
                             </tr>
                         </thead>
                         <tbody id="goldPriceTableBody">
                             <tr>
-                                <td colspan="7" class="loading-state">
+                                <td colspan="5" class="loading-state">
                                     <div class="loading-spinner"></div>
                                     <p>데이터를 불러오는 중...</p>
                                 </td>
@@ -577,7 +575,7 @@
 
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="7" class="loading-state">
+                    <td colspan="5" class="loading-state">
                         <div class="loading-spinner"></div>
                         <p>데이터를 불러오는 중...</p>
                     </td>
@@ -605,7 +603,7 @@
                     console.error('금시세 데이터 로드 오류:', error);
                     tbody.innerHTML = `
                         <tr>
-                            <td colspan="7" class="empty-state">
+                            <td colspan="5" class="empty-state">
                                 <div class="empty-icon">⚠️</div>
                                 <p>데이터 로드 실패: ${error.message}</p>
                                 <p style="font-size: 0.9rem; margin-top: 10px;">테이블이 아직 생성되지 않았을 수 있습니다.</p>
@@ -620,9 +618,9 @@
                 if (sortBy === 'date_asc') {
                     goldPrices.sort((a, b) => new Date(a.date) - new Date(b.date));
                 } else if (sortBy === 'price_desc') {
-                    goldPrices.sort((a, b) => b.close_price - a.close_price);
+                    goldPrices.sort((a, b) => b.sell_pure_375g - a.sell_pure_375g);
                 } else if (sortBy === 'price_asc') {
-                    goldPrices.sort((a, b) => a.close_price - b.close_price);
+                    goldPrices.sort((a, b) => a.sell_pure_375g - b.sell_pure_375g);
                 }
                 // date_desc는 기본 정렬이므로 별도 처리 불필요
 
@@ -635,21 +633,14 @@
                     document.getElementById('lastUpdateTime').textContent = `마지막 업데이트: ${formatDateTime(latestDate)}`;
 
                     // 테이블 렌더링
-                    tbody.innerHTML = goldPrices.map((price, index) => {
-                        const prevPrice = index < goldPrices.length - 1 ? goldPrices[index + 1].close_price : price.close_price;
-                        const changeRate = ((price.close_price - prevPrice) / prevPrice * 100).toFixed(2);
-                        const changeClass = changeRate > 0 ? 'price-up' : (changeRate < 0 ? 'price-down' : 'price-same');
-                        const trendClass = changeRate > 0 ? 'trend-up' : (changeRate < 0 ? 'trend-down' : '');
-
+                    tbody.innerHTML = goldPrices.map(price => {
                         return `
                             <tr>
                                 <td>${formatDate(price.date)}</td>
-                                <td>${formatPrice(price.open_price)}</td>
-                                <td>${formatPrice(price.high_price)}</td>
-                                <td>${formatPrice(price.low_price)}</td>
-                                <td style="font-weight: 600;">${formatPrice(price.close_price)}</td>
-                                <td class="${changeClass}">${changeRate > 0 ? '+' : ''}${changeRate}%</td>
-                                <td class="${trendClass}">${changeRate > 0 ? '상승' : (changeRate < 0 ? '하락' : '보합')}</td>
+                                <td>${formatPrice(price.buy_pure_375g)}</td>
+                                <td>${formatPrice(price.sell_pure_375g)}</td>
+                                <td>${formatPrice(price.sell_18k_375g)}</td>
+                                <td>${formatPrice(price.sell_14k_375g)}</td>
                             </tr>
                         `;
                     }).join('');
@@ -660,7 +651,7 @@
 
                     tbody.innerHTML = `
                         <tr>
-                            <td colspan="7" class="empty-state">
+                            <td colspan="5" class="empty-state">
                                 <div class="empty-icon">📊</div>
                                 <p>아직 데이터가 없습니다.</p>
                                 <p style="font-size: 0.9rem; margin-top: 10px;">크롤링이 실행되면 데이터가 자동으로 추가됩니다.</p>
@@ -672,7 +663,7 @@
                 console.error('예상치 못한 오류:', e);
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="7" class="empty-state">
+                        <td colspan="5" class="empty-state">
                             <div class="empty-icon">❌</div>
                             <p>오류가 발생했습니다.</p>
                             <p style="font-size: 0.9rem; margin-top: 10px;">${e.message}</p>

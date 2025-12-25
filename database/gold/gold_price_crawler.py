@@ -7,6 +7,16 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import pandas as pd
 from datetime import datetime
+from supabase import create_client, Client
+
+# ==============================
+# Supabase 설정
+# ==============================
+SUPABASE_URL = 'https://wfzgznipfvkcgqnfwvuk.supabase.co'
+SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indmemd6bmlwZnZrY2dxbmZ3dnVrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2MjI4MzcsImV4cCI6MjA4MjE5ODgzN30.Vzy5mJLVBFnwYt1e0UXhdN3WZDK7nqsgNwcFuIs0mTE'
+
+# Supabase 클라이언트 생성
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 def scrape_gold_prices():
     """
@@ -160,6 +170,57 @@ def scrape_gold_prices():
         if driver:
             driver.quit()
 
+def upload_to_supabase(df):
+    """
+    DataFrame을 Supabase에 업로드합니다.
+    """
+    try:
+        print("\nSupabase에 데이터 업로드 중...")
+        
+        uploaded_count = 0
+        skipped_count = 0
+        error_count = 0
+        
+        for _, row in df.iterrows():
+            try:
+                # 데이터 변환
+                data = {
+                    'date': row['고시날짜'],
+                    'buy_pure_375g': float(row['내가_살때_순금_3.75g']) if pd.notna(row['내가_살때_순금_3.75g']) else None,
+                    'sell_pure_375g': float(row['내가_팔때_순금_3.75g']) if pd.notna(row['내가_팔때_순금_3.75g']) else None,
+                    'sell_18k_375g': float(row['내가_팔때_18K_3.75g']) if pd.notna(row['내가_팔때_18K_3.75g']) else None,
+                    'sell_14k_375g': float(row['내가_팔때_14K_3.75g']) if pd.notna(row['내가_팔때_14K_3.75g']) else None
+                }
+                
+                # Supabase에 데이터 삽입 (upsert 사용: 중복 시 업데이트)
+                response = supabase.table('gold_prices').upsert(data, on_conflict='date').execute()
+                
+                if response:
+                    uploaded_count += 1
+                    if uploaded_count <= 5 or uploaded_count % 20 == 0:
+                        print(f"  [{uploaded_count}/{len(df)}] {row['고시날짜']} 업로드 완료")
+                
+            except Exception as e:
+                error_msg = str(e)
+                if 'duplicate' in error_msg.lower() or 'unique' in error_msg.lower():
+                    skipped_count += 1
+                else:
+                    error_count += 1
+                    print(f"  오류: {row['고시날짜']} - {e}")
+        
+        print(f"\n{'='*50}")
+        print(f"Supabase 업로드 완료!")
+        print(f"성공: {uploaded_count}개")
+        print(f"건너뜀: {skipped_count}개 (중복)")
+        print(f"실패: {error_count}개")
+        print(f"{'='*50}\n")
+        
+        return True
+    
+    except Exception as e:
+        print(f"Supabase 업로드 오류: {e}")
+        return False
+
 def save_to_excel(df, filename='gold_prices.xlsx'):
     """
     DataFrame을 엑셀 파일로 저장합니다.
@@ -169,7 +230,7 @@ def save_to_excel(df, filename='gold_prices.xlsx'):
         df.to_excel(filename, index=False, engine='openpyxl')
         
         print(f"\n{'='*50}")
-        print(f"저장 완료!")
+        print(f"엑셀 저장 완료!")
         print(f"파일명: {filename}")
         print(f"총 데이터 개수: {len(df)}")
         print(f"{'='*50}\n")
@@ -191,7 +252,7 @@ def save_to_csv(df, filename='gold_prices.csv'):
     try:
         df.to_csv(filename, index=False, encoding='utf-8-sig')
         
-        print(f"\nCSV 파일 저장 완료: {filename}")
+        print(f"CSV 파일 저장 완료: {filename}")
         return True
     
     except Exception as e:
@@ -203,7 +264,7 @@ def main():
     메인 함수
     """
     print("="*50)
-    print("금 시세 크롤링 스크립트 (Selenium)")
+    print("금 시세 크롤링 스크립트 (Selenium + Supabase)")
     print("="*50)
     print()
     
@@ -211,13 +272,18 @@ def main():
     df = scrape_gold_prices()
     
     if df is not None and not df.empty:
-        # 엑셀 파일로 저장
+        # Supabase에 업로드
+        upload_to_supabase(df)
+        
+        # 엑셀 파일로 저장 (백업용)
         save_to_excel(df, 'gold_prices.xlsx')
         
-        # CSV 파일로도 저장
+        # CSV 파일로도 저장 (백업용)
         save_to_csv(df, 'gold_prices.csv')
         
-        print("\n크롤링 완료!")
+        print("\n모든 작업 완료!")
+        print("데이터가 Supabase에 업로드되었습니다.")
+        print("database.html에서 조회하실 수 있습니다.")
     else:
         print("\n크롤링 실패: 데이터를 가져올 수 없습니다.")
 
