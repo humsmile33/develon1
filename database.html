@@ -110,11 +110,20 @@
             font-size: 1rem;
         }
 
+        /* 데이터베이스 섹션 상단 */
+        .section-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
         /* 데이터베이스 카드 그리드 */
         .database-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            display: flex;
             gap: 20px;
+            overflow-x: auto;
+            padding-bottom: 20px;
             margin-bottom: 40px;
         }
 
@@ -123,13 +132,23 @@
             border-radius: var(--radius);
             box-shadow: var(--shadow-md);
             padding: 30px;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
             cursor: pointer;
+            min-width: 320px;
+            max-width: 350px;
+            flex-shrink: 0;
+            border: 2px solid transparent;
+            position: relative;
         }
 
         .database-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 8px 15px -3px rgba(0, 0, 0, 0.15);
+        }
+
+        .database-card.selected {
+            border-color: var(--primary-color);
+            background-color: #f0f7ff;
         }
 
         .database-icon {
@@ -147,6 +166,7 @@
             color: var(--text-sub);
             font-size: 0.9rem;
             margin-bottom: 15px;
+            min-height: 42px;
         }
 
         .database-stats {
@@ -172,16 +192,64 @@
             color: var(--text-sub);
         }
 
-        /* 금시세 데이터 섹션 */
-        .gold-price-section {
+        /* 카드 삭제 버튼 */
+        .delete-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background-color: #fee2e2;
+            color: #dc2626;
+            border: none;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            cursor: pointer;
+            font-size: 1rem;
+            opacity: 0;
+            transition: opacity 0.2s, background-color 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .database-card:hover .delete-btn {
+            opacity: 1;
+        }
+
+        .delete-btn:hover {
+            background-color: #fecaca;
+        }
+
+        /* + 버튼 */
+        .add-database-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: var(--radius);
+            width: 50px;
+            height: 50px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .add-database-btn:hover {
+            background-color: var(--primary-hover);
+            transform: scale(1.1);
+        }
+
+        /* 상세 섹션 */
+        .detail-section {
             background-color: var(--bg-card);
             border-radius: var(--radius);
             box-shadow: var(--shadow-md);
             padding: 30px;
-            margin-top: 40px;
         }
 
-        .gold-price-header {
+        .detail-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -190,19 +258,15 @@
             border-bottom: 2px solid var(--border-color);
         }
 
-        .gold-price-title {
+        .detail-title {
             display: flex;
             align-items: center;
             gap: 10px;
         }
 
-        .gold-price-title h2 {
+        .detail-title h2 {
             font-size: 1.5rem;
             font-weight: 700;
-        }
-
-        .gold-icon {
-            font-size: 2rem;
         }
 
         .last-update {
@@ -254,20 +318,20 @@
         }
 
         /* 금시세 테이블 */
-        .gold-table-wrapper {
+        .table-wrapper {
             overflow-x: auto;
         }
 
-        .gold-table {
+        .data-table {
             width: 100%;
             border-collapse: collapse;
         }
 
-        .gold-table thead {
+        .data-table thead {
             background-color: #f9fafb;
         }
 
-        .gold-table th {
+        .data-table th {
             padding: 12px 15px;
             text-align: left;
             font-weight: 600;
@@ -276,39 +340,14 @@
             border-bottom: 2px solid var(--border-color);
         }
 
-        .gold-table td {
+        .data-table td {
             padding: 12px 15px;
             border-bottom: 1px solid var(--border-color);
             font-size: 0.95rem;
         }
 
-        .gold-table tbody tr:hover {
+        .data-table tbody tr:hover {
             background-color: #f9fafb;
-        }
-
-        /* 가격 표시 스타일 */
-        .price-up {
-            color: #dc2626;
-            font-weight: 600;
-        }
-
-        .price-down {
-            color: #2563eb;
-            font-weight: 600;
-        }
-
-        .price-same {
-            color: var(--text-sub);
-        }
-
-        .trend-up::before {
-            content: '▲ ';
-            color: #dc2626;
-        }
-
-        .trend-down::before {
-            content: '▼ ';
-            color: #2563eb;
         }
 
         /* 데이터 로딩 상태 */
@@ -343,6 +382,126 @@
         .empty-icon {
             font-size: 3rem;
             margin-bottom: 15px;
+        }
+
+        /* --- 모달 (Modal) --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background-color: var(--bg-card);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-md);
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+
+        .form-input, .form-textarea, .form-select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            font-size: 0.95rem;
+            font-family: var(--font-family);
+        }
+
+        .form-textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .icon-selector {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .icon-option {
+            width: 50px;
+            height: 50px;
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: border-color 0.2s, background-color 0.2s;
+        }
+
+        .icon-option:hover {
+            border-color: var(--primary-color);
+            background-color: #f0f7ff;
+        }
+
+        .icon-option.selected {
+            border-color: var(--primary-color);
+            background-color: #dbeafe;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: var(--radius);
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .btn-secondary {
+            background-color: var(--bg-body);
+            color: var(--text-main);
+        }
+
+        .btn-secondary:hover {
+            background-color: #e5e7eb;
         }
 
         /* --- 푸터 (Footer) --- */
@@ -387,8 +546,10 @@
                 font-size: 0.9rem;
             }
 
-            .database-grid {
-                grid-template-columns: 1fr;
+            .section-top {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 15px;
             }
 
             .filter-controls {
@@ -428,113 +589,80 @@
                 <p class="section-description">다양한 데이터베이스를 탐색하고 분석하세요.</p>
             </div>
 
-            <!-- 데이터베이스 카드 그리드 -->
-            <div class="database-grid">
-                <!-- 금시세 크롤링 데이터베이스 카드 -->
-                <div class="database-card">
-                    <div class="database-icon">🏅</div>
-                    <h3 class="database-name">금시세 크롤링 데이터베이스</h3>
-                    <p class="database-description">실시간 금 가격 정보 및 시계열 데이터를 제공합니다. 한국 시장의 금 시세를 추적하고 분석할 수 있습니다.</p>
-                    <div class="database-stats">
-                        <div class="stat-item">
-                            <span class="stat-value" id="goldRecordCount">0</span>
-                            <span class="stat-label">총 레코드</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-value" id="goldLastUpdate">-</span>
-                            <span class="stat-label">마지막 업데이트</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 향후 추가될 데이터베이스 카드 (예시) -->
-                <div class="database-card" style="opacity: 0.6; cursor: not-allowed;">
-                    <div class="database-icon">📊</div>
-                    <h3 class="database-name">주식 시장 데이터 (예정)</h3>
-                    <p class="database-description">KOSPI/KOSDAQ 주식 시장 데이터를 제공할 예정입니다.</p>
-                    <div class="database-stats">
-                        <div class="stat-item">
-                            <span class="stat-value">-</span>
-                            <span class="stat-label">총 레코드</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-value">준비중</span>
-                            <span class="stat-label">상태</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="database-card" style="opacity: 0.6; cursor: not-allowed;">
-                    <div class="database-icon">🌦️</div>
-                    <h3 class="database-name">날씨 데이터 (예정)</h3>
-                    <p class="database-description">전국 날씨 예보 및 기상 관측 데이터를 제공할 예정입니다.</p>
-                    <div class="database-stats">
-                        <div class="stat-item">
-                            <span class="stat-value">-</span>
-                            <span class="stat-label">총 레코드</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-value">준비중</span>
-                            <span class="stat-label">상태</span>
-                        </div>
-                    </div>
-                </div>
+            <!-- 섹션 상단 -->
+            <div class="section-top">
+                <h2 style="font-size: 1.25rem; font-weight: 600;">데이터베이스 목록</h2>
+                <button class="add-database-btn" id="addDatabaseBtn" title="데이터베이스 추가">+</button>
             </div>
 
-            <!-- 금시세 데이터 섹션 -->
-            <div class="gold-price-section">
-                <div class="gold-price-header">
-                    <div class="gold-price-title">
-                        <span class="gold-icon">🏅</span>
-                        <h2>금시세 크롤링 데이터</h2>
+            <!-- 데이터베이스 카드 그리드 -->
+            <div class="database-grid" id="databaseGrid">
+                <!-- 카드는 JavaScript로 동적 렌더링 -->
+            </div>
+
+            <!-- 상세 섹션 -->
+            <div class="detail-section" id="detailSection" style="display: none;">
+                <div class="detail-header">
+                    <div class="detail-title">
+                        <span id="detailIcon" class="database-icon">🏅</span>
+                        <h2 id="detailTitle">금시세 크롤링 데이터</h2>
                     </div>
                     <span class="last-update" id="lastUpdateTime">마지막 업데이트: -</span>
                 </div>
 
-                <!-- 필터 컨트롤 -->
-                <div class="filter-controls">
-                    <div class="filter-group">
-                        <span class="filter-label">정렬:</span>
-                        <select class="filter-select" id="sortSelect">
-                            <option value="date_desc">최신순</option>
-                            <option value="date_asc">오래된순</option>
-                            <option value="price_desc">높은 가격순</option>
-                            <option value="price_asc">낮은 가격순</option>
-                        </select>
+                <!-- 금시세 필터 및 테이블 -->
+                <div id="goldPriceContent">
+                    <div class="filter-controls">
+                        <div class="filter-group">
+                            <span class="filter-label">정렬:</span>
+                            <select class="filter-select" id="sortSelect">
+                                <option value="date_desc">최신순</option>
+                                <option value="date_asc">오래된순</option>
+                                <option value="price_desc">높은 가격순</option>
+                                <option value="price_asc">낮은 가격순</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <span class="filter-label">기간:</span>
+                            <select class="filter-select" id="periodSelect">
+                                <option value="all">전체</option>
+                                <option value="7">최근 7일</option>
+                                <option value="30">최근 30일</option>
+                                <option value="90">최근 90일</option>
+                            </select>
+                        </div>
+                        <button class="refresh-btn" id="refreshBtn">🔄 새로고침</button>
                     </div>
-                    <div class="filter-group">
-                        <span class="filter-label">기간:</span>
-                        <select class="filter-select" id="periodSelect">
-                            <option value="all">전체</option>
-                            <option value="7">최근 7일</option>
-                            <option value="30">최근 30일</option>
-                            <option value="90">최근 90일</option>
-                        </select>
+
+                    <div class="table-wrapper">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 20%;">날짜</th>
+                                    <th style="width: 20%;">내가살때 순금 3.75g</th>
+                                    <th style="width: 20%;">내가팔때 순금 3.75g</th>
+                                    <th style="width: 20%;">내가팔때 18K 3.75g</th>
+                                    <th style="width: 20%;">내가팔때 14K 3.75g</th>
+                                </tr>
+                            </thead>
+                            <tbody id="goldPriceTableBody">
+                                <tr>
+                                    <td colspan="5" class="loading-state">
+                                        <div class="loading-spinner"></div>
+                                        <p>데이터를 불러오는 중...</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
-                    <button class="refresh-btn" id="refreshBtn">🔄 새로고침</button>
                 </div>
 
-                <!-- 금시게 테이블 -->
-                <div class="gold-table-wrapper">
-                    <table class="gold-table">
-                        <thead>
-                            <tr>
-                                <th style="width: 20%;">날짜</th>
-                                <th style="width: 20%;">내가살때 순금 3.75g</th>
-                                <th style="width: 20%;">내가팔때 순금 3.75g</th>
-                                <th style="width: 20%;">내가팔때 18K 3.75g</th>
-                                <th style="width: 20%;">내가팔때 14K 3.75g</th>
-                            </tr>
-                        </thead>
-                        <tbody id="goldPriceTableBody">
-                            <tr>
-                                <td colspan="5" class="loading-state">
-                                    <div class="loading-spinner"></div>
-                                    <p>데이터를 불러오는 중...</p>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                <!-- 기타 데이터베이스 내용 -->
+                <div id="otherDatabaseContent" style="display: none;">
+                    <div class="empty-state">
+                        <div class="empty-icon">📊</div>
+                        <p>이 데이터베이스는 아직 준비 중입니다.</p>
+                    </div>
                 </div>
             </div>
         </section>
@@ -556,6 +684,45 @@
         </div>
     </footer>
 
+    <!-- 데이터베이스 추가 모달 -->
+    <div class="modal-overlay" id="addModal">
+        <div class="modal">
+            <h3 class="modal-title">데이터베이스 추가</h3>
+            <form id="addDatabaseForm">
+                <div class="form-group">
+                    <label class="form-label">제목</label>
+                    <input type="text" class="form-input" id="databaseName" required placeholder="예: 환율 데이터">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">설명</label>
+                    <textarea class="form-textarea" id="databaseDescription" required placeholder="데이터베이스에 대한 설명을 입력하세요."></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">아이콘</label>
+                    <div class="icon-selector" id="iconSelector">
+                        <div class="icon-option" data-icon="📊">📊</div>
+                        <div class="icon-option" data-icon="📈">📈</div>
+                        <div class="icon-option" data-icon="🌦️">🌦️</div>
+                        <div class="icon-option" data-icon="💰">💰</div>
+                        <div class="icon-option" data-icon="🏅">🏅</div>
+                        <div class="icon-option" data-icon="📉">📉</div>
+                        <div class="icon-option" data-icon="💡">💡</div>
+                        <div class="icon-option" data-icon="🎯">🎯</div>
+                    </div>
+                    <input type="hidden" id="selectedIcon" value="📊">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">테이블명</label>
+                    <input type="text" class="form-input" id="tableName" required placeholder="예: exchange_rates">
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" class="btn btn-secondary" id="cancelBtn">취소</button>
+                    <button type="submit" class="btn btn-primary">추가</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Supabase 연동 스크립트 -->
     <script>
         // ==============================
@@ -564,6 +731,167 @@
         const SUPABASE_URL = 'https://wfzgznipfvkcgqnfwvuk.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indmemd6bmlwZnZrY2dxbmZ3dnVrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2MjI4MzcsImV4cCI6MjA4MjE5ODgzN30.Vzy5mJLVBFnwYt1e0UXhdN3WZDK7nqsgNwcFuIs0mTE';
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // ==============================
+        // 전역 변수
+        // ==============================
+        let currentDatabase = null;
+        let databaseList = [];
+
+        // ==============================
+        // 데이터베이스 카드 로드
+        // ==============================
+        async function loadDatabaseCards() {
+            try {
+                const { data: databases, error } = await supabaseClient
+                    .from('databases')
+                    .select('*')
+                    .eq('is_active', true)
+                    .order('display_order', { ascending: true });
+
+                if (error) {
+                    console.error('데이터베이스 목록 로드 오류:', error);
+                    return;
+                }
+
+                databaseList = databases || [];
+                renderDatabaseCards(databaseList);
+
+                // 첫 번째 데이터베이스 자동 선택
+                if (databaseList.length > 0 && !currentDatabase) {
+                    selectDatabase(databaseList[0]);
+                }
+            } catch (e) {
+                console.error('예상치 못한 오류:', e);
+            }
+        }
+
+        // ==============================
+        // 데이터베이스 카드 렌더링
+        // ==============================
+        function renderDatabaseCards(databases) {
+            const grid = document.getElementById('databaseGrid');
+            grid.innerHTML = databases.map(db => `
+                <div class="database-card ${currentDatabase && currentDatabase.id === db.id ? 'selected' : ''}" 
+                     data-id="${db.id}" onclick="selectDatabaseById(${db.id})">
+                    <button class="delete-btn" onclick="event.stopPropagation(); deleteDatabase(${db.id})">🗑️</button>
+                    <div class="database-icon">${db.icon}</div>
+                    <h3 class="database-name">${db.name}</h3>
+                    <p class="database-description">${db.description}</p>
+                    <div class="database-stats">
+                        <div class="stat-item">
+                            <span class="stat-value" id="recordCount_${db.id}">-</span>
+                            <span class="stat-label">총 레코드</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">-</span>
+                            <span class="stat-label">상태</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            // 각 데이터베이스의 레코드 수 로드
+            databases.forEach(db => loadRecordCount(db));
+        }
+
+        // ==============================
+        // 레코드 수 로드
+        // ==============================
+        async function loadRecordCount(db) {
+            try {
+                if (db.table_name === 'gold_prices') {
+                    const { count } = await supabaseClient
+                        .from('gold_prices')
+                        .select('*', { count: 'exact', head: true });
+                    document.getElementById(`recordCount_${db.id}`).textContent = (count || 0).toLocaleString();
+                }
+            } catch (e) {
+                console.error('레코드 수 로드 오류:', e);
+            }
+        }
+
+        // ==============================
+        // 데이터베이스 선택
+        // ==============================
+        function selectDatabaseById(id) {
+            const db = databaseList.find(d => d.id === id);
+            if (db) {
+                selectDatabase(db);
+            }
+        }
+
+        function selectDatabase(db) {
+            currentDatabase = db;
+
+            // 카드 선택 표시
+            document.querySelectorAll('.database-card').forEach(card => {
+                card.classList.remove('selected');
+                if (parseInt(card.dataset.id) === db.id) {
+                    card.classList.add('selected');
+                }
+            });
+
+            // 상세 섹션 표시
+            const detailSection = document.getElementById('detailSection');
+            detailSection.style.display = 'block';
+
+            // 상세 정보 업데이트
+            document.getElementById('detailIcon').textContent = db.icon;
+            document.getElementById('detailTitle').textContent = db.name;
+
+            // 데이터베이스 유형에 따라 내용 렌더링
+            const goldPriceContent = document.getElementById('goldPriceContent');
+            const otherDatabaseContent = document.getElementById('otherDatabaseContent');
+
+            if (db.table_name === 'gold_prices') {
+                goldPriceContent.style.display = 'block';
+                otherDatabaseContent.style.display = 'none';
+                loadGoldPrices();
+            } else {
+                goldPriceContent.style.display = 'none';
+                otherDatabaseContent.style.display = 'block';
+            }
+
+            // 스크롤 이동
+            detailSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // ==============================
+        // 데이터베이스 삭제
+        // ==============================
+        async function deleteDatabase(id) {
+            if (!confirm('정말로 이 데이터베이스를 삭제하시겠습니까?')) {
+                return;
+            }
+
+            try {
+                const { error } = await supabaseClient
+                    .from('databases')
+                    .delete()
+                    .eq('id', id);
+
+                if (error) {
+                    console.error('데이터베이스 삭제 오류:', error);
+                    alert('삭제 실패: ' + error.message);
+                    return;
+                }
+
+                // 카드 다시 렌더링
+                await loadDatabaseCards();
+
+                // 선택된 데이터베이스가 삭제되었으면 상세 섹션 숨김
+                if (currentDatabase && currentDatabase.id === id) {
+                    currentDatabase = null;
+                    document.getElementById('detailSection').style.display = 'none';
+                }
+
+                alert('데이터베이스가 삭제되었습니다.');
+            } catch (e) {
+                console.error('예상치 못한 오류:', e);
+                alert('오류가 발생했습니다.');
+            }
+        }
 
         // ==============================
         // 금시세 데이터 로드 함수
@@ -622,31 +950,23 @@
                 } else if (sortBy === 'price_asc') {
                     goldPrices.sort((a, b) => a.sell_pure_375g - b.sell_pure_375g);
                 }
-                // date_desc는 기본 정렬이므로 별도 처리 불필요
 
                 // 통계 업데이트
                 if (goldPrices && goldPrices.length > 0) {
-                    document.getElementById('goldRecordCount').textContent = goldPrices.length.toLocaleString();
-                    
                     const latestDate = goldPrices[0].date;
-                    document.getElementById('goldLastUpdate').textContent = formatDate(latestDate);
                     document.getElementById('lastUpdateTime').textContent = `마지막 업데이트: ${formatDateTime(latestDate)}`;
 
                     // 테이블 렌더링
-                    tbody.innerHTML = goldPrices.map(price => {
-                        return `
-                            <tr>
-                                <td>${formatDate(price.date)}</td>
-                                <td>${formatPrice(price.buy_pure_375g)}</td>
-                                <td>${formatPrice(price.sell_pure_375g)}</td>
-                                <td>${formatPrice(price.sell_18k_375g)}</td>
-                                <td>${formatPrice(price.sell_14k_375g)}</td>
-                            </tr>
-                        `;
-                    }).join('');
+                    tbody.innerHTML = goldPrices.map(price => `
+                        <tr>
+                            <td>${formatDate(price.date)}</td>
+                            <td>${formatPrice(price.buy_pure_375g)}</td>
+                            <td>${formatPrice(price.sell_pure_375g)}</td>
+                            <td>${formatPrice(price.sell_18k_375g)}</td>
+                            <td>${formatPrice(price.sell_14k_375g)}</td>
+                        </tr>
+                    `).join('');
                 } else {
-                    document.getElementById('goldRecordCount').textContent = '0';
-                    document.getElementById('goldLastUpdate').textContent = '-';
                     document.getElementById('lastUpdateTime').textContent = '마지막 업데이트: -';
 
                     tbody.innerHTML = `
@@ -701,11 +1021,109 @@
         }
 
         // ==============================
+        // 모달 관리
+        // ==============================
+        const modal = document.getElementById('addModal');
+        const addDatabaseBtn = document.getElementById('addDatabaseBtn');
+        const cancelBtn = document.getElementById('cancelBtn');
+        const addDatabaseForm = document.getElementById('addDatabaseForm');
+        const iconSelector = document.getElementById('iconSelector');
+        const selectedIconInput = document.getElementById('selectedIcon');
+
+        addDatabaseBtn.addEventListener('click', () => {
+            modal.classList.add('active');
+        });
+
+        cancelBtn.addEventListener('click', () => {
+            modal.classList.remove('active');
+            addDatabaseForm.reset();
+            resetIconSelection();
+        });
+
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.classList.remove('active');
+                addDatabaseForm.reset();
+                resetIconSelection();
+            }
+        });
+
+        // 아이콘 선택
+        iconSelector.addEventListener('click', (e) => {
+            const iconOption = e.target.closest('.icon-option');
+            if (iconOption) {
+                resetIconSelection();
+                iconOption.classList.add('selected');
+                selectedIconInput.value = iconOption.dataset.icon;
+            }
+        });
+
+        function resetIconSelection() {
+            document.querySelectorAll('.icon-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            selectedIconInput.value = '📊';
+        }
+
+        // 데이터베이스 추가
+        addDatabaseForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const name = document.getElementById('databaseName').value;
+            const description = document.getElementById('databaseDescription').value;
+            const icon = selectedIconInput.value;
+            const tableName = document.getElementById('tableName').value;
+
+            try {
+                // 최대 display_order 가져오기
+                const { data: existingDbs } = await supabaseClient
+                    .from('databases')
+                    .select('display_order')
+                    .order('display_order', { ascending: false })
+                    .limit(1);
+
+                const nextOrder = existingDbs && existingDbs.length > 0 
+                    ? existingDbs[0].display_order + 1 
+                    : 1;
+
+                // 데이터베이스 추가
+                const { data, error } = await supabaseClient
+                    .from('databases')
+                    .insert({
+                        name,
+                        description,
+                        icon,
+                        table_name: tableName,
+                        display_order: nextOrder
+                    });
+
+                if (error) {
+                    console.error('데이터베이스 추가 오류:', error);
+                    alert('추가 실패: ' + error.message);
+                    return;
+                }
+
+                // 모달 닫기
+                modal.classList.remove('active');
+                addDatabaseForm.reset();
+                resetIconSelection();
+
+                // 카드 다시 렌더링
+                await loadDatabaseCards();
+
+                alert('데이터베이스가 추가되었습니다.');
+            } catch (e) {
+                console.error('예상치 못한 오류:', e);
+                alert('오류가 발생했습니다.');
+            }
+        });
+
+        // ==============================
         // 페이지 로드 시 초기화
         // ==============================
         document.addEventListener('DOMContentLoaded', function() {
-            // 금시계 데이터 로드
-            loadGoldPrices();
+            // 데이터베이스 카드 로드
+            loadDatabaseCards();
 
             // 정렬 선택 변경 이벤트
             const sortSelect = document.getElementById('sortSelect');
