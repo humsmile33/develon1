@@ -276,6 +276,18 @@ CREATE POLICY "post_categories_insert_all" ON post_categories FOR INSERT WITH CH
 CREATE POLICY "post_categories_delete_all" ON post_categories FOR DELETE USING (true);
 
 -- ============================================
+-- 조회수 증가 함수 (RPC)
+-- ============================================
+CREATE OR REPLACE FUNCTION increment_views(post_id BIGINT)
+RETURNS VOID AS $$
+BEGIN
+    UPDATE posts 
+    SET views = views + 1 
+    WHERE id = post_id AND is_deleted = false;
+END;
+$$ LANGUAGE plpgsql;
+
+-- ============================================
 -- 유용한 뷰 (Views) 생성
 -- ============================================
 
