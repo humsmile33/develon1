@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Space - 게시글 상세</title>
+    <style>
+        /* --- CSS 변수 및 초기화 (디자인 시스템) --- */
+        :root {
+            --primary-color: #2563eb;       /* 메인 블루 */
+            --primary-hover: #1d4ed8;       /* 호버 블루 */
+            --text-main: #1f2937;           /* 주요 텍스트 */
+            --text-sub: #6b7280;            /* 보조 텍스트 */
+            --bg-body: #f3f4f6;             /* 배경색 */
+            --bg-card: #ffffff;             /* 카드 배경 */
+            --border-color: #e5e7eb;        /* 테두리 색상 */
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --radius: 8px;                  /* 둥근 모서리 */
+            --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            line-height: 1.6;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+            transition: color 0.2s;
+        }
+
+        ul {
+            list-style: none;
+        }
+
+        /* --- 레이아웃 컨테이너 --- */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* --- 헤더 (Header) --- */
+        header {
+            background-color: var(--bg-card);
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .header-inner {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 70px;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            letter-spacing: -0.5px;
+        }
+
+        nav ul {
+            display: flex;
+            gap: 30px;
+        }
+
+        nav a {
+            font-weight: 500;
+            color: var(--text-main);
+        }
+
+        nav a:hover {
+            color: var(--primary-color);
+        }
+
+        /* --- 게시글 상세 섹션 (Post Detail Section) --- */
+        .post-detail-section {
+            padding: 40px 0 60px;
+        }
+
+        .post-card {
+            background-color: var(--bg-card);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-md);
+            overflow: hidden;
+        }
+
+        /* 게시글 헤더 영역 */
+        .post-header {
+            border-bottom: 1px solid var(--border-color);
+            padding: 30px 40px;
+        }
+
+        .post-title-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .post-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .notice-badge {
+            background-color: #fee2e2;
+            color: #b91c1c;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            flex-shrink: 0;
+            margin-top: 8px;
+        }
+
+        .post-meta {
+            display: flex;
+            gap: 30px;
+            font-size: 0.9rem;
+            color: var(--text-sub);
+        }
+
+        .post-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .post-meta-label {
+            font-weight: 500;
+            color: var(--text-main);
+        }
+
+        /* 게시글 내용 영역 */
+        .post-content {
+            padding: 40px;
+            min-height: 300px;
+            line-height: 1.8;
+            font-size: 1rem;
+            color: var(--text-main);
+        }
+
+        .post-content p {
+            margin-bottom: 15px;
+        }
+
+        /* 게시글 하단 버튼 영역 */
+        .post-actions {
+            padding: 20px 40px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #f9fafb;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 10px 24px;
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: var(--radius);
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: background-color 0.2s;
+        }
+
+        .btn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+        }
+
+        .btn-outline:hover {
+            background-color: #f3f4f6;
+            border-color: var(--text-sub);
+        }
+
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 0.9rem;
+        }
+
+        /* 댓글 섹션 (디자인만) */
+        .comments-section {
+            background-color: var(--bg-card);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-md);
+            margin-top: 20px;
+            overflow: hidden;
+        }
+
+        .comments-header {
+            padding: 20px 30px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .comment-count {
+            color: var(--primary-color);
+        }
+
+        .comment-list {
+            padding: 20px 30px;
+        }
+
+        .comment-item {
+            padding: 20px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .comment-item:last-child {
+            border-bottom: none;
+        }
+
+        .comment-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .comment-author {
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .comment-date {
+            font-size: 0.85rem;
+            color: var(--text-sub);
+        }
+
+        .comment-content {
+            color: var(--text-main);
+            line-height: 1.6;
+        }
+
+        /* 댓글 작성 영역 */
+        .comment-form {
+            padding: 20px 30px;
+            border-top: 1px solid var(--border-color);
+            background-color: #f9fafb;
+        }
+
+        .comment-textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            font-family: inherit;
+            resize: vertical;
+            min-height: 80px;
+            margin-bottom: 10px;
+        }
+
+        .comment-actions {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        /* --- 푸터 (Footer) --- */
+        footer {
+            background-color: var(--text-main);
+            color: #d1d5db;
+            padding: 40px 0;
+            margin-top: 40px;
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .footer-info p {
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+        }
+
+        .footer-links a {
+            font-size: 0.9rem;
+            margin-left: 20px;
+        }
+
+        .footer-links a:hover {
+            color: white;
+        }
+
+        /* --- 반응형 처리 --- */
+        @media (max-width: 768px) {
+            .header-inner {
+                flex-direction: column;
+                height: auto;
+                padding: 15px 0;
+                gap: 15px;
+            }
+            
+            nav ul {
+                gap: 15px;
+                font-size: 0.9rem;
+            }
+
+            .post-header {
+                padding: 20px;
+            }
+
+            .post-title {
+                font-size: 1.25rem;
+            }
+
+            .post-meta {
+                flex-direction: column;
+                gap: 10px;
+                font-size: 0.85rem;
+            }
+
+            .post-content {
+                padding: 20px;
+            }
+
+            .post-actions {
+                padding: 15px 20px;
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .action-buttons {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 헤더 영역 -->
+    <header>
+        <div class="container header-inner">
+            <a href="index.html" class="logo">Modern Space</a>
+            <nav>
+                <ul>
+                    <li><a href="index.html">홈</a></li>
+                    <li><a href="#">소개</a></li>
+                    <li><a href="#" style="color: var(--primary-color);">게시판</a></li>
+                    <li><a href="#">문의</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <!-- 게시글 상세 섹션 -->
+        <section class="container post-detail-section">
+            <!-- 게시글 카드 -->
+            <div class="post-card">
+                <!-- 게시글 헤더 -->
+                <div class="post-header">
+                    <div class="post-title-row">
+                        <h1 class="post-title">프로젝트 시작 전에 기획서 어떻게 작성하시나요?</h1>
+                    </div>
+                    <div class="post-meta">
+                        <div class="post-meta-item">
+                            <span class="post-meta-label">작성자:</span>
+                            <span>김철수</span>
+                        </div>
+                        <div class="post-meta-item">
+                            <span class="post-meta-label">작성일:</span>
+                            <span>2024-05-19</span>
+                        </div>
+                        <div class="post-meta-item">
+                            <span class="post-meta-label">조회수:</span>
+                            <span>45</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 게시글 내용 -->
+                <div class="post-content">
+                    <p>안녕하세요! 웹 개발을 시작한 지 얼마 안 된 초보 개발자입니다.</p>
+                    <p>현재 새로운 프로젝트를 시작하려고 하는데, 기획서를 어떻게 작성해야 할지 고민이 많습니다.</p>
+                    <p>경험 있는 분들이나 회사에서는 보통 어떤 항목을 포함해서 기획서를 작성하시나요?</p>
+                    <p>특히 다음과 같은 항목이 궁금합니다:</p>
+                    <ul style="margin-left: 20px; list-style: disc; margin-bottom: 15px;">
+                        <li>프로젝트 목표 및 범위</li>
+                        <li>기능 요구사항 목록</li>
+                        <li>기술 스택 선정 이유</li>
+                        <li>개발 일정 및 마일스톤</li>
+                        <li>예상되는 문제점과 해결 방안</li>
+                    </ul>
+                    <p>조언해 주시면 정말 감사하겠습니다!</p>
+                    <p>많은 답변 부탁드립니다. 🙏</p>
+                </div>
+
+                <!-- 게시글 하단 버튼 -->
+                <div class="post-actions">
+                    <div class="action-buttons">
+                        <button class="btn btn-outline btn-small">수정</button>
+                        <button class="btn btn-outline btn-small">삭제</button>
+                    </div>
+                    <a href="index.html" class="btn btn-outline">목록으로</a>
+                </div>
+            </div>
+
+            <!-- 댓글 섹션 (디자인만) -->
+            <div class="comments-section">
+                <div class="comments-header">
+                    댓글 <span class="comment-count">(3)</span>
+                </div>
+                
+                <div class="comment-list">
+                    <!-- 댓글 1 -->
+                    <div class="comment-item">
+                        <div class="comment-header">
+                            <span class="comment-author">이시니어</span>
+                            <span class="comment-date">2024-05-19 14:32</span>
+                        </div>
+                        <p class="comment-content">
+                            안녕하세요! 기획서 작성에 대한 경험을 공유해 드릴게요. 
+                            먼저 사용자 스토리(User Story)를 작성하는 것부터 시작하는 것을 추천합니다.
+                            "사용자로서, ~하고 싶다. 그래서 ~을 한다." 형식으로 작성하면 좋습니다.
+                        </p>
+                    </div>
+
+                    <!-- 댓글 2 -->
+                    <div class="comment-item">
+                        <div class="comment-header">
+                            <span class="comment-author">개발자A</span>
+                            <span class="comment-date">2024-05-19 15:45</span>
+                        </div>
+                        <p class="comment-content">
+                            저는 항상 와이어프레임을 먼저 그리고 기획서를 작성합니다. 
+                            시각적인 요소를 먼저 정리하고 나면 기능 명세가 훨씬 수월해져요.
+                            Figma나 Sketch 같은 툴을 추천합니다!
+                        </p>
+                    </div>
+
+                    <!-- 댓글 3 -->
+                    <div class="comment-item">
+                        <div class="comment-header">
+                            <span class="comment-author">코딩고수</span>
+                            <span class="comment-date">2024-05-19 18:20</span>
+                        </div>
+                        <p class="comment-content">
+                            팀 프로젝트라면 Notion이나 Confluence 같은 협업 툴을 사용하는 것도 좋아요.
+                            실시간으로 협업할 수 있어서 효율적입니다.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- 댓글 작성 폼 -->
+                <div class="comment-form">
+                    <textarea class="comment-textarea" placeholder="댓글을 입력하세요..."></textarea>
+                    <div class="comment-actions">
+                        <button class="btn btn-small">댓글 등록</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 푸터 영역 -->
+    <footer>
+        <div class="container footer-content">
+            <div class="footer-info">
+                <p><strong>Modern Space</strong></p>
+                <p>주소: 서울특별시 마포대로 123 | 대표: 홍길동</p>
+                <p>© 2024 Modern Space. All rights reserved.</p>
+            </div>
+            <div class="footer-links">
+                <a href="#">이용약관</a>
+                <a href="#">개인정보처리방침</a>
+                <a href="#">고객센터</a>
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>
