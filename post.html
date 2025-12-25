@@ -631,12 +631,18 @@
         }
 
         // ==============================
-        // 이벤트 리스너
+        // 페이지 로드 시 초기화
         // ==============================
-        document.getElementById('submitCommentBtn').addEventListener('click', createComment);
+        document.addEventListener('DOMContentLoaded', function() {
+            // 게시글 로드
+            loadPost();
 
-        // 페이지 로드 시 게시글 로드
-        document.addEventListener('DOMContentLoaded', loadPost);
+            // 댓글 등록 버튼 이벤트
+            const submitCommentBtn = document.getElementById('submitCommentBtn');
+            if (submitCommentBtn) {
+                submitCommentBtn.addEventListener('click', createComment);
+            }
+        });
     </script>
 </body>
 </html>
