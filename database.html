@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Space - 데이터베이스</title>
+    <!-- Supabase 클라이언트 라이브러리 -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        /* --- CSS 변수 및 초기화 (디자인 시스템) --- */
+        :root {
+            --primary-color: #2563eb;
+            --primary-hover: #1d4ed8;
+            --text-main: #1f2937;
+            --text-sub: #6b7280;
+            --bg-body: #f3f4f6;
+            --bg-card: #ffffff;
+            --border-color: #e5e7eb;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --radius: 8px;
+            --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            line-height: 1.6;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+            transition: color 0.2s;
+        }
+
+        ul {
+            list-style: none;
+        }
+
+        /* --- 레이아웃 컨테이너 --- */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* --- 헤더 (Header) --- */
+        header {
+            background-color: var(--bg-card);
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .header-inner {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 70px;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            letter-spacing: -0.5px;
+        }
+
+        nav ul {
+            display: flex;
+            gap: 30px;
+        }
+
+        nav a {
+            font-weight: 500;
+            color: var(--text-main);
+        }
+
+        nav a:hover, nav a.active {
+            color: var(--primary-color);
+        }
+
+        /* --- 데이터베이스 섹션 --- */
+        .database-section {
+            padding: 40px 0 60px;
+        }
+
+        .section-header {
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .section-description {
+            color: var(--text-sub);
+            font-size: 1rem;
+        }
+
+        /* 데이터베이스 카드 그리드 */
+        .database-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .database-card {
+            background-color: var(--bg-card);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-md);
+            padding: 30px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+        }
+
+        .database-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px -3px rgba(0, 0, 0, 0.15);
+        }
+
+        .database-icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+        }
+
+        .database-name {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .database-description {
+            color: var(--text-sub);
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
+
+        .database-stats {
+            display: flex;
+            gap: 20px;
+            padding-top: 15px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stat-value {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-sub);
+        }
+
+        /* 금시세 데이터 섹션 */
+        .gold-price-section {
+            background-color: var(--bg-card);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-md);
+            padding: 30px;
+            margin-top: 40px;
+        }
+
+        .gold-price-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .gold-price-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .gold-price-title h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .gold-icon {
+            font-size: 2rem;
+        }
+
+        .last-update {
+            font-size: 0.85rem;
+            color: var(--text-sub);
+        }
+
+        /* 필터 컨트롤 */
+        .filter-controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-label {
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .filter-select {
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            font-size: 0.9rem;
+            background-color: white;
+            cursor: pointer;
+        }
+
+        .refresh-btn {
+            padding: 8px 16px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: var(--radius);
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .refresh-btn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        /* 금시세 테이블 */
+        .gold-table-wrapper {
+            overflow-x: auto;
+        }
+
+        .gold-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .gold-table thead {
+            background-color: #f9fafb;
+        }
+
+        .gold-table th {
+            padding: 12px 15px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--text-sub);
+            font-size: 0.9rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .gold-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.95rem;
+        }
+
+        .gold-table tbody tr:hover {
+            background-color: #f9fafb;
+        }
+
+        /* 가격 표시 스타일 */
+        .price-up {
+            color: #dc2626;
+            font-weight: 600;
+        }
+
+        .price-down {
+            color: #2563eb;
+            font-weight: 600;
+        }
+
+        .price-same {
+            color: var(--text-sub);
+        }
+
+        .trend-up::before {
+            content: '▲ ';
+            color: #dc2626;
+        }
+
+        .trend-down::before {
+            content: '▼ ';
+            color: #2563eb;
+        }
+
+        /* 데이터 로딩 상태 */
+        .loading-state {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-sub);
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 3px solid #e5e7eb;
+            border-top-color: var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 15px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* 빈 상태 */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-sub);
+        }
+
+        .empty-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+
+        /* --- 푸터 (Footer) --- */
+        footer {
+            background-color: var(--text-main);
+            color: #d1d5db;
+            padding: 40px 0;
+            margin-top: 40px;
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .footer-info p {
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+        }
+
+        .footer-links a {
+            font-size: 0.9rem;
+            margin-left: 20px;
+        }
+
+        .footer-links a:hover {
+            color: white;
+        }
+
+        /* --- 반응형 처리 --- */
+        @media (max-width: 768px) {
+            .header-inner {
+                flex-direction: column;
+                height: auto;
+                padding: 15px 0;
+                gap: 15px;
+            }
+
+            nav ul {
+                gap: 15px;
+                font-size: 0.9rem;
+            }
+
+            .database-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .filter-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .section-title {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 헤더 영역 -->
+    <header>
+        <div class="container header-inner">
+            <a href="index.html" class="logo">Modern Space</a>
+            <nav>
+                <ul>
+                    <li><a href="index.html">홈</a></li>
+                    <li><a href="#">소개</a></li>
+                    <li><a href="index.html">게시판</a></li>
+                    <li><a href="database.html" class="active">데이터베이스</a></li>
+                    <li><a href="#">문의</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <!-- 데이터베이스 섹션 -->
+        <section class="container database-section">
+            <div class="section-header">
+                <h1 class="section-title">데이터베이스</h1>
+                <p class="section-description">다양한 데이터베이스를 탐색하고 분석하세요.</p>
+            </div>
+
+            <!-- 데이터베이스 카드 그리드 -->
+            <div class="database-grid">
+                <!-- 금시세 크롤링 데이터베이스 카드 -->
+                <div class="database-card">
+                    <div class="database-icon">🏅</div>
+                    <h3 class="database-name">금시세 크롤링 데이터베이스</h3>
+                    <p class="database-description">실시간 금 가격 정보 및 시계열 데이터를 제공합니다. 한국 시장의 금 시세를 추적하고 분석할 수 있습니다.</p>
+                    <div class="database-stats">
+                        <div class="stat-item">
+                            <span class="stat-value" id="goldRecordCount">0</span>
+                            <span class="stat-label">총 레코드</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value" id="goldLastUpdate">-</span>
+                            <span class="stat-label">마지막 업데이트</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 향후 추가될 데이터베이스 카드 (예시) -->
+                <div class="database-card" style="opacity: 0.6; cursor: not-allowed;">
+                    <div class="database-icon">📊</div>
+                    <h3 class="database-name">주식 시장 데이터 (예정)</h3>
+                    <p class="database-description">KOSPI/KOSDAQ 주식 시장 데이터를 제공할 예정입니다.</p>
+                    <div class="database-stats">
+                        <div class="stat-item">
+                            <span class="stat-value">-</span>
+                            <span class="stat-label">총 레코드</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">준비중</span>
+                            <span class="stat-label">상태</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="database-card" style="opacity: 0.6; cursor: not-allowed;">
+                    <div class="database-icon">🌦️</div>
+                    <h3 class="database-name">날씨 데이터 (예정)</h3>
+                    <p class="database-description">전국 날씨 예보 및 기상 관측 데이터를 제공할 예정입니다.</p>
+                    <div class="database-stats">
+                        <div class="stat-item">
+                            <span class="stat-value">-</span>
+                            <span class="stat-label">총 레코드</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">준비중</span>
+                            <span class="stat-label">상태</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 금시세 데이터 섹션 -->
+            <div class="gold-price-section">
+                <div class="gold-price-header">
+                    <div class="gold-price-title">
+                        <span class="gold-icon">🏅</span>
+                        <h2>금시세 크롤링 데이터</h2>
+                    </div>
+                    <span class="last-update" id="lastUpdateTime">마지막 업데이트: -</span>
+                </div>
+
+                <!-- 필터 컨트롤 -->
+                <div class="filter-controls">
+                    <div class="filter-group">
+                        <span class="filter-label">정렬:</span>
+                        <select class="filter-select" id="sortSelect">
+                            <option value="date_desc">최신순</option>
+                            <option value="date_asc">오래된순</option>
+                            <option value="price_desc">높은 가격순</option>
+                            <option value="price_asc">낮은 가격순</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <span class="filter-label">기간:</span>
+                        <select class="filter-select" id="periodSelect">
+                            <option value="all">전체</option>
+                            <option value="7">최근 7일</option>
+                            <option value="30">최근 30일</option>
+                            <option value="90">최근 90일</option>
+                        </select>
+                    </div>
+                    <button class="refresh-btn" id="refreshBtn">🔄 새로고침</button>
+                </div>
+
+                <!-- 금시게 테이블 -->
+                <div class="gold-table-wrapper">
+                    <table class="gold-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 15%;">날짜</th>
+                                <th style="width: 15%;">시가</th>
+                                <th style="width: 15%;">고가</th>
+                                <th style="width: 15%;">저가</th>
+                                <th style="width: 15%;">종가</th>
+                                <th style="width: 15%;">변동률</th>
+                                <th style="width: 10%;">추세</th>
+                            </tr>
+                        </thead>
+                        <tbody id="goldPriceTableBody">
+                            <tr>
+                                <td colspan="7" class="loading-state">
+                                    <div class="loading-spinner"></div>
+                                    <p>데이터를 불러오는 중...</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 푸터 영역 -->
+    <footer>
+        <div class="container footer-content">
+            <div class="footer-info">
+                <p><strong>Modern Space</strong></p>
+                <p>주소: 서울특별시 마포대로 123 | 대표: 홍길동</p>
+                <p>© 2024 Modern Space. All rights reserved.</p>
+            </div>
+            <div class="footer-links">
+                <a href="#">이용약관</a>
+                <a href="#">개인정보처리방침</a>
+                <a href="#">고객센터</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Supabase 연동 스크립트 -->
+    <script>
+        // ==============================
+        // Supabase 설정
+        // ==============================
+        const SUPABASE_URL = 'https://wfzgznipfvkcgqnfwvuk.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indmemd6bmlwZnZrY2dxbmZ3dnVrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2MjI4MzcsImV4cCI6MjA4MjE5ODgzN30.Vzy5mJLVBFnwYt1e0UXhdN3WZDK7nqsgNwcFuIs0mTE';
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // ==============================
+        // 금시세 데이터 로드 함수
+        // ==============================
+        async function loadGoldPrices() {
+            const tbody = document.getElementById('goldPriceTableBody');
+            const sortSelect = document.getElementById('sortSelect');
+            const periodSelect = document.getElementById('periodSelect');
+
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="7" class="loading-state">
+                        <div class="loading-spinner"></div>
+                        <p>데이터를 불러오는 중...</p>
+                    </td>
+                </tr>
+            `;
+
+            try {
+                // 금시계 데이터 조회 (gold_prices 테이블)
+                let query = supabaseClient
+                    .from('gold_prices')
+                    .select('*')
+                    .order('date', { ascending: false });
+
+                // 기간 필터링
+                const period = periodSelect.value;
+                if (period !== 'all') {
+                    const daysAgo = new Date();
+                    daysAgo.setDate(daysAgo.getDate() - parseInt(period));
+                    query = query.gte('date', daysAgo.toISOString().split('T')[0]);
+                }
+
+                const { data: goldPrices, error } = await query;
+
+                if (error) {
+                    console.error('금시세 데이터 로드 오류:', error);
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="7" class="empty-state">
+                                <div class="empty-icon">⚠️</div>
+                                <p>데이터 로드 실패: ${error.message}</p>
+                                <p style="font-size: 0.9rem; margin-top: 10px;">테이블이 아직 생성되지 않았을 수 있습니다.</p>
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+
+                // 정렬 적용
+                const sortBy = sortSelect.value;
+                if (sortBy === 'date_asc') {
+                    goldPrices.sort((a, b) => new Date(a.date) - new Date(b.date));
+                } else if (sortBy === 'price_desc') {
+                    goldPrices.sort((a, b) => b.close_price - a.close_price);
+                } else if (sortBy === 'price_asc') {
+                    goldPrices.sort((a, b) => a.close_price - b.close_price);
+                }
+                // date_desc는 기본 정렬이므로 별도 처리 불필요
+
+                // 통계 업데이트
+                if (goldPrices && goldPrices.length > 0) {
+                    document.getElementById('goldRecordCount').textContent = goldPrices.length.toLocaleString();
+                    
+                    const latestDate = goldPrices[0].date;
+                    document.getElementById('goldLastUpdate').textContent = formatDate(latestDate);
+                    document.getElementById('lastUpdateTime').textContent = `마지막 업데이트: ${formatDateTime(latestDate)}`;
+
+                    // 테이블 렌더링
+                    tbody.innerHTML = goldPrices.map((price, index) => {
+                        const prevPrice = index < goldPrices.length - 1 ? goldPrices[index + 1].close_price : price.close_price;
+                        const changeRate = ((price.close_price - prevPrice) / prevPrice * 100).toFixed(2);
+                        const changeClass = changeRate > 0 ? 'price-up' : (changeRate < 0 ? 'price-down' : 'price-same');
+                        const trendClass = changeRate > 0 ? 'trend-up' : (changeRate < 0 ? 'trend-down' : '');
+
+                        return `
+                            <tr>
+                                <td>${formatDate(price.date)}</td>
+                                <td>${formatPrice(price.open_price)}</td>
+                                <td>${formatPrice(price.high_price)}</td>
+                                <td>${formatPrice(price.low_price)}</td>
+                                <td style="font-weight: 600;">${formatPrice(price.close_price)}</td>
+                                <td class="${changeClass}">${changeRate > 0 ? '+' : ''}${changeRate}%</td>
+                                <td class="${trendClass}">${changeRate > 0 ? '상승' : (changeRate < 0 ? '하락' : '보합')}</td>
+                            </tr>
+                        `;
+                    }).join('');
+                } else {
+                    document.getElementById('goldRecordCount').textContent = '0';
+                    document.getElementById('goldLastUpdate').textContent = '-';
+                    document.getElementById('lastUpdateTime').textContent = '마지막 업데이트: -';
+
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="7" class="empty-state">
+                                <div class="empty-icon">📊</div>
+                                <p>아직 데이터가 없습니다.</p>
+                                <p style="font-size: 0.9rem; margin-top: 10px;">크롤링이 실행되면 데이터가 자동으로 추가됩니다.</p>
+                            </td>
+                        </tr>
+                    `;
+                }
+            } catch (e) {
+                console.error('예상치 못한 오류:', e);
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="empty-state">
+                            <div class="empty-icon">❌</div>
+                            <p>오류가 발생했습니다.</p>
+                            <p style="font-size: 0.9rem; margin-top: 10px;">${e.message}</p>
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        // ==============================
+        // 유틸리티 함수
+        // ==============================
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toISOString().split('T')[0];
+        }
+
+        function formatDateTime(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('ko-KR', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function formatPrice(price) {
+            if (!price) return '-';
+            return new Intl.NumberFormat('ko-KR', {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            }).format(price);
+        }
+
+        // ==============================
+        // 페이지 로드 시 초기화
+        // ==============================
+        document.addEventListener('DOMContentLoaded', function() {
+            // 금시계 데이터 로드
+            loadGoldPrices();
+
+            // 정렬 선택 변경 이벤트
+            const sortSelect = document.getElementById('sortSelect');
+            if (sortSelect) {
+                sortSelect.addEventListener('change', loadGoldPrices);
+            }
+
+            // 기간 선택 변경 이벤트
+            const periodSelect = document.getElementById('periodSelect');
+            if (periodSelect) {
+                periodSelect.addEventListener('change', loadGoldPrices);
+            }
+
+            // 새로고침 버튼 이벤트
+            const refreshBtn = document.getElementById('refreshBtn');
+            if (refreshBtn) {
+                refreshBtn.addEventListener('click', loadGoldPrices);
+            }
+        });
+    </script>
+</body>
+</html>
