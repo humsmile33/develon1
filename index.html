@@ -512,50 +512,269 @@
 
     <!-- Supabase 연동 스크립트 -->
     <script>
-        // 모달 관련 요소 가져오기
-        const writeBtn = document.getElementById('writePostBtn');
-        const modalOverlay = document.getElementById('writeModal');
-        const closeBtn = document.getElementById('closeModal');
-        const cancelBtn = document.getElementById('cancelBtn');
+        // ==============================
+        // Supabase 설정
+        // ==============================
+        const SUPABASE_URL = 'https://wfzgznipfvkcgqnfwvuk.supabase.co';
+        const SUPABASE_ANON_KEY = 'sbp_60678a57b24d0c2cfad40be81aa75d3a6eae0bb2';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // 모달 열기
-        writeBtn.addEventListener('click', () => {
-            modalOverlay.classList.add('open');
-        });
+        // ==============================
+        // 전역 변수 선언
+        // ==============================
+        let writeBtn, modalOverlay, closeBtn, cancelBtn, submitBtn, searchInput, searchBtn;
 
-        // 모달 닫기 함수
-        const closeModal = () => {
-            modalOverlay.classList.remove('open');
-        };
+        // ==============================
+        // 게시글 목록 로드 함수
+        // ==============================
+        async function loadPosts() {
+            const tbody = document.getElementById('postsTableBody');
+            
+            try {
+                const { data: posts, error } = await supabase
+                    .from('posts')
+                    .select('*')
+                    .eq('is_deleted', false)
+                    .order('notice_type', { ascending: true, nullsFirst: false })
+                    .order('created_at', { ascending: false });
 
-        // 닫기 버튼 클릭 시
-        closeBtn.addEventListener('click', closeModal);
-        cancelBtn.addEventListener('click', closeModal);
+                if (error) {
+                    console.error('게시글 로드 오류:', error);
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">게시글 로드 실패: ' + error.message + '</td></tr>';
+                    return;
+                }
 
-        // 모달 바깥쪽 배경 클릭 시 닫기
-        modalOverlay.addEventListener('click', (e) => {
-            if (e.target === modalOverlay) {
+                if (posts && posts.length > 0) {
+                    tbody.innerHTML = posts.map(post => {
+                        const formattedDate = formatDate(post.created_at);
+                        const noticeBadge = post.notice_type !== 'none' 
+                            ? `<span class="notice-badge">${post.notice_type === 'notice' ? '공지' : '안내'}</span>`
+                            : '';
+                        
+                        return `
+                            <tr>
+                                <td>${noticeBadge || post.id}</td>
+                                <td><a href="post.html?id=${post.id}" class="post-title">${escapeHtml(post.title)}</a></td>
+                                <td>${escapeHtml(post.author)}</td>
+                                <td>${formattedDate}</td>
+                                <td>${post.views}</td>
+                            </tr>
+                        `;
+                    }).join('');
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">게시글이 없습니다.</td></tr>';
+                }
+            } catch (e) {
+                console.error('예상치 못한 오류:', e);
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">오류가 발생했습니다.</td></tr>';
+            }
+        }
+
+        // ==============================
+        // 게시글 작성 함수
+        // ==============================
+        async function createPost() {
+            const titleInput = document.querySelector('input[placeholder="글 제목을 입력하세요"]');
+            const authorInput = document.querySelector('input[placeholder="이름을 입력하세요"]');
+            const contentInput = document.querySelector('textarea[placeholder="내용을 입력하세요"]');
+
+            const title = titleInput.value.trim();
+            const author = authorInput.value.trim();
+            const content = contentInput.value.trim();
+
+            if (!title || !author || !content) {
+                alert('제목, 작성자, 내용을 모두 입력해주세요.');
+                return;
+            }
+
+            try {
+                const { data, error } = await supabase
+                    .from('posts')
+                    .insert([{
+                        title: title,
+                        content: content,
+                        author: author,
+                        notice_type: 'none',
+                        views: 0
+                    }])
+                    .select();
+
+                if (error) {
+                    console.error('게시글 작성 오류:', error);
+                    alert('게시글 작성 실패: ' + error.message);
+                    return;
+                }
+
+                alert('게시글이 등록되었습니다!');
+                
+                // 폼 초기화
+                titleInput.value = '';
+                authorInput.value = '';
+                contentInput.value = '';
+                
+                // 모달 닫기
                 closeModal();
+                
+                // 게시글 목록 새로고침
+                loadPosts();
+            } catch (e) {
+                console.error('예상치 못한 오류:', e);
+                alert('오류가 발생했습니다.');
             }
-        });
-
-        submitBtn.addEventListener('click', createPost);
-
-        // 검색 기능
-        searchBtn.addEventListener('click', () => {
-            searchPosts(searchInput.value);
-        });
-
-        searchInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                searchPosts(searchInput.value);
-            }
-        });
+        }
 
         // ==============================
-        // 페이지 로드 시 게시글 목록 로드
+        // 검색 함수
         // ==============================
-        document.addEventListener('DOMContentLoaded', loadPosts);
+        async function searchPosts(keyword) {
+            const tbody = document.getElementById('postsTableBody');
+            
+            if (!keyword.trim()) {
+                loadPosts();
+                return;
+            }
+
+            try {
+                const { data: posts, error } = await supabase
+                    .from('posts')
+                    .select('*')
+                    .eq('is_deleted', false)
+                    .or(`title.ilike.%${keyword}%,author.ilike.%${keyword}%`)
+                    .order('notice_type', { ascending: true, nullsFirst: false })
+                    .order('created_at', { ascending: false });
+
+                if (error) {
+                    console.error('검색 오류:', error);
+                    return;
+                }
+
+                if (posts && posts.length > 0) {
+                    tbody.innerHTML = posts.map(post => {
+                        const formattedDate = formatDate(post.created_at);
+                        const noticeBadge = post.notice_type !== 'none' 
+                            ? `<span class="notice-badge">${post.notice_type === 'notice' ? '공지' : '안내'}</span>`
+                            : '';
+                        
+                        return `
+                            <tr>
+                                <td>${noticeBadge || post.id}</td>
+                                <td><a href="post.html?id=${post.id}" class="post-title">${escapeHtml(post.title)}</a></td>
+                                <td>${escapeHtml(post.author)}</td>
+                                <td>${formattedDate}</td>
+                                <td>${post.views}</td>
+                            </tr>
+                        `;
+                    }).join('');
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">검색 결과가 없습니다.</td></tr>';
+                }
+            } catch (e) {
+                console.error('검색 오류:', e);
+            }
+        }
+
+        // ==============================
+        // 유틸리티 함수
+        // ==============================
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toISOString().split('T')[0];
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // ==============================
+        // 모달 닫기 함수
+        // ==============================
+        function closeModal() {
+            if (modalOverlay) {
+                modalOverlay.classList.remove('open');
+            }
+        }
+
+        // ==============================
+        // 페이지 로드 시 초기화
+        // ==============================
+        document.addEventListener('DOMContentLoaded', function() {
+            // 게시글 목록 로드
+            loadPosts();
+
+            // DOM 요소 가져오기
+            writeBtn = document.getElementById('writePostBtn');
+            modalOverlay = document.getElementById('writeModal');
+            closeBtn = document.getElementById('closeModal');
+            cancelBtn = document.getElementById('cancelBtn');
+            submitBtn = document.getElementById('submitPostBtn');
+            searchInput = document.querySelector('.search-input');
+            searchBtn = document.querySelector('.search-box button');
+
+            // 디버깅용 로그
+            console.log('writeBtn:', writeBtn);
+            console.log('modalOverlay:', modalOverlay);
+            console.log('closeBtn:', closeBtn);
+            console.log('cancelBtn:', cancelBtn);
+            console.log('submitBtn:', submitBtn);
+            console.log('searchInput:', searchInput);
+            console.log('searchBtn:', searchBtn);
+
+            // 글쓰기 버튼 이벤트
+            if (writeBtn) {
+                writeBtn.addEventListener('click', function() {
+                    console.log('글쓰기 버튼 클릭');
+                    if (modalOverlay) {
+                        modalOverlay.classList.add('open');
+                    }
+                });
+            }
+
+            // 닫기 버튼 이벤트
+            if (closeBtn) {
+                closeBtn.addEventListener('click', closeModal);
+            }
+
+            if (cancelBtn) {
+                cancelBtn.addEventListener('click', closeModal);
+            }
+
+            // 모달 바깥쪽 클릭 시 닫기
+            if (modalOverlay) {
+                modalOverlay.addEventListener('click', function(e) {
+                    if (e.target === modalOverlay) {
+                        closeModal();
+                    }
+                });
+            }
+
+            // 등록하기 버튼 이벤트
+            if (submitBtn) {
+                submitBtn.addEventListener('click', function() {
+                    console.log('등록하기 버튼 클릭');
+                    createPost();
+                });
+            }
+
+            // 검색 버튼 이벤트
+            if (searchBtn) {
+                searchBtn.addEventListener('click', function() {
+                    if (searchInput) {
+                        searchPosts(searchInput.value);
+                    }
+                });
+            }
+
+            // 검색 입력창 엔터키 이벤트
+            if (searchInput) {
+                searchInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        searchPosts(searchInput.value);
+                    }
+                });
+            }
+        });
     </script>
 </body>
 </html>
