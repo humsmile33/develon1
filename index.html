@@ -516,8 +516,8 @@
         // Supabase 설정
         // ==============================
         const SUPABASE_URL = 'https://wfzgznipfvkcgqnfwvuk.supabase.co';
-        const SUPABASE_ANON_KEY = 'sbp_60678a57b24d0c2cfad40be81aa75d3a6eae0bb2';
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxjeXZ6Y2pzcWZ3bHNqdWdkcW56Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ0MTExNDgsImV4cCI6MjA3OTg4NzE0OH0.zrPBGMvt7S6Mr_eQ63Yw8ST6-NfgxaNYVbqXv602pEc';
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         // ==============================
         // 전역 변수 선언
@@ -531,7 +531,7 @@
             const tbody = document.getElementById('postsTableBody');
             
             try {
-                const { data: posts, error } = await supabase
+                const { data: posts, error } = await supabaseClient
                     .from('posts')
                     .select('*')
                     .eq('is_deleted', false)
@@ -588,7 +588,7 @@
             }
 
             try {
-                const { data, error } = await supabase
+                const { data, error } = await supabaseClient
                     .from('posts')
                     .insert([{
                         title: title,
@@ -635,7 +635,7 @@
             }
 
             try {
-                const { data: posts, error } = await supabase
+                const { data: posts, error } = await supabaseClient
                     .from('posts')
                     .select('*')
                     .eq('is_deleted', false)
