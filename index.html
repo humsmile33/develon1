@@ -685,50 +685,67 @@
         }
 
         // ==============================
-        // 모달 관련
+        // 페이지 로드 시 게시글 목록 로드 및 이벤트 리스너 설정
         // ==============================
-        const writeBtn = document.getElementById('writePostBtn');
-        const modalOverlay = document.getElementById('writeModal');
-        const closeBtn = document.getElementById('closeModal');
-        const cancelBtn = document.getElementById('cancelBtn');
-        const submitBtn = document.getElementById('submitPostBtn');
-        const searchInput = document.querySelector('.search-input');
-        const searchBtn = document.querySelector('.search-box button');
+        document.addEventListener('DOMContentLoaded', () => {
+            // 게시글 목록 로드
+            loadPosts();
 
-        writeBtn.addEventListener('click', () => {
-            modalOverlay.classList.add('open');
-        });
+            // ==============================
+            // 모달 관련
+            // ==============================
+            const writeBtn = document.getElementById('writePostBtn');
+            const modalOverlay = document.getElementById('writeModal');
+            const closeBtn = document.getElementById('closeModal');
+            const cancelBtn = document.getElementById('cancelBtn');
+            const submitBtn = document.getElementById('submitPostBtn');
+            const searchInput = document.querySelector('.search-input');
+            const searchBtn = document.querySelector('.search-box button');
 
-        const closeModal = () => {
-            modalOverlay.classList.remove('open');
-        };
+            if (writeBtn) {
+                writeBtn.addEventListener('click', () => {
+                    modalOverlay.classList.add('open');
+                });
+            }
 
-        closeBtn.addEventListener('click', closeModal);
-        cancelBtn.addEventListener('click', closeModal);
+            const closeModal = () => {
+                modalOverlay.classList.remove('open');
+            };
 
-        modalOverlay.addEventListener('click', (e) => {
-            if (e.target === modalOverlay) {
-                closeModal();
+            if (closeBtn) {
+                closeBtn.addEventListener('click', closeModal);
+            }
+            if (cancelBtn) {
+                cancelBtn.addEventListener('click', closeModal);
+            }
+
+            if (modalOverlay) {
+                modalOverlay.addEventListener('click', (e) => {
+                    if (e.target === modalOverlay) {
+                        closeModal();
+                    }
+                });
+            }
+
+            if (submitBtn) {
+                submitBtn.addEventListener('click', createPost);
+            }
+
+            // 검색 기능
+            if (searchBtn) {
+                searchBtn.addEventListener('click', () => {
+                    searchPosts(searchInput.value);
+                });
+            }
+
+            if (searchInput) {
+                searchInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        searchPosts(searchInput.value);
+                    }
+                });
             }
         });
-
-        submitBtn.addEventListener('click', createPost);
-
-        // 검색 기능
-        searchBtn.addEventListener('click', () => {
-            searchPosts(searchInput.value);
-        });
-
-        searchInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                searchPosts(searchInput.value);
-            }
-        });
-
-        // ==============================
-        // 페이지 로드 시 게시글 목록 로드
-        // ==============================
-        document.addEventListener('DOMContentLoaded', loadPosts);
     </script>
 </body>
 </html>
