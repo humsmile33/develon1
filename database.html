@@ -610,6 +610,67 @@
                     <span class="last-update" id="lastUpdateTime">마지막 업데이트: -</span>
                 </div>
 
+                <!-- 키큰 유명인 필터 및 테이블 -->
+                <div id="celebritiesContent" style="display: none;">
+                    <div class="filter-controls">
+                        <div class="filter-group">
+                            <span class="filter-label">정렬:</span>
+                            <select class="filter-select" id="celebritySortSelect">
+                                <option value="height_desc">높은 키순</option>
+                                <option value="height_asc">낮은 키순</option>
+                                <option value="name_asc">이름순</option>
+                                <option value="age_asc">나이 많은순</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <span class="filter-label">직업:</span>
+                            <select class="filter-select" id="occupationFilter">
+                                <option value="all">전체</option>
+                                <option value="배우">배우</option>
+                                <option value="가수">가수</option>
+                                <option value="아이돌">아이돌</option>
+                                <option value="모델">모델</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <span class="filter-label">키:</span>
+                            <select class="filter-select" id="heightFilter">
+                                <option value="all">전체</option>
+                                <option value="190">190cm 이상</option>
+                                <option value="189">189cm</option>
+                                <option value="188">188cm</option>
+                                <option value="187">187cm</option>
+                                <option value="186">186cm</option>
+                                <option value="185">185cm</option>
+                            </select>
+                        </div>
+                        <button class="refresh-btn" id="celebrityRefreshBtn">🔄 새로고침</button>
+                    </div>
+
+                    <div class="table-wrapper">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 25%;">이름</th>
+                                    <th style="width: 20%;">직업</th>
+                                    <th style="width: 15%;">출생년도</th>
+                                    <th style="width: 15%;">나이</th>
+                                    <th style="width: 15%;">키 (cm)</th>
+                                    <th style="width: 10%;">성별</th>
+                                </tr>
+                            </thead>
+                            <tbody id="celebritiesTableBody">
+                                <tr>
+                                    <td colspan="6" class="loading-state">
+                                        <div class="loading-spinner"></div>
+                                        <p>데이터를 불러오는 중...</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
                 <!-- 금시세 필터 및 테이블 -->
                 <div id="goldPriceContent">
                     <div class="filter-controls">
@@ -661,7 +722,7 @@
                 <div id="otherDatabaseContent" style="display: none;">
                     <div class="empty-state">
                         <div class="empty-icon">📊</div>
-                        <p>이 데이터베이스는 아직 준비 중입니다.</p>
+                        <p>이 데이터베이스는 아직 준비 중입니다. 원하시는 데이터베이스를 추가해주시면 빠른 시일내에 작업해서 올려드릴께요 ^^</p>
                     </div>
                 </div>
             </div>
@@ -805,6 +866,11 @@
                         .from('gold_prices')
                         .select('*', { count: 'exact', head: true });
                     document.getElementById(`recordCount_${db.id}`).textContent = (count || 0).toLocaleString();
+                } else if (db.table_name === 'celebrities') {
+                    const { count } = await supabaseClient
+                        .from('celebrities')
+                        .select('*', { count: 'exact', head: true });
+                    document.getElementById(`recordCount_${db.id}`).textContent = (count || 0).toLocaleString();
                 }
             } catch (e) {
                 console.error('레코드 수 로드 오류:', e);
@@ -842,14 +908,22 @@
 
             // 데이터베이스 유형에 따라 내용 렌더링
             const goldPriceContent = document.getElementById('goldPriceContent');
+            const celebritiesContent = document.getElementById('celebritiesContent');
             const otherDatabaseContent = document.getElementById('otherDatabaseContent');
 
             if (db.table_name === 'gold_prices') {
                 goldPriceContent.style.display = 'block';
+                celebritiesContent.style.display = 'none';
                 otherDatabaseContent.style.display = 'none';
                 loadGoldPrices();
+            } else if (db.table_name === 'celebrities') {
+                goldPriceContent.style.display = 'none';
+                celebritiesContent.style.display = 'block';
+                otherDatabaseContent.style.display = 'none';
+                loadCelebrities();
             } else {
                 goldPriceContent.style.display = 'none';
+                celebritiesContent.style.display = 'none';
                 otherDatabaseContent.style.display = 'block';
             }
 
@@ -994,6 +1068,126 @@
         }
 
         // ==============================
+        // 키큰 유명인 데이터 로드 함수
+        // ==============================
+        async function loadCelebrities() {
+            const tbody = document.getElementById('celebritiesTableBody');
+            const sortSelect = document.getElementById('celebritySortSelect');
+            const occupationFilter = document.getElementById('occupationFilter');
+            const heightFilter = document.getElementById('heightFilter');
+
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="6" class="loading-state">
+                        <div class="loading-spinner"></div>
+                        <p>데이터를 불러오는 중...</p>
+                    </td>
+                </tr>
+            `;
+
+            try {
+                // 키큰 유명인 데이터 조회 (celebrities 테이블)
+                let query = supabaseClient
+                    .from('celebrities')
+                    .select('*');
+
+                const { data: celebrities, error } = await query;
+
+                if (error) {
+                    console.error('키큰 유명인 데이터 로드 오류:', error);
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="6" class="empty-state">
+                                <div class="empty-icon">⚠️</div>
+                                <p>데이터 로드 실패: ${error.message}</p>
+                                <p style="font-size: 0.9rem; margin-top: 10px;">테이블이 아직 생성되지 않았을 수 있습니다.</p>
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+
+                // 필터링 적용
+                let filteredData = [...celebrities];
+
+                // 직업 필터링
+                const occupation = occupationFilter.value;
+                if (occupation !== 'all') {
+                    filteredData = filteredData.filter(c => c.occupation.includes(occupation));
+                }
+
+                // 키 필터링
+                const height = heightFilter.value;
+                if (height !== 'all') {
+                    if (height === '190') {
+                        filteredData = filteredData.filter(c => c.height_cm >= 190);
+                    } else {
+                        filteredData = filteredData.filter(c => c.height_cm === parseInt(height));
+                    }
+                }
+
+                // 정렬 적용
+                const sortBy = sortSelect.value;
+                if (sortBy === 'height_desc') {
+                    filteredData.sort((a, b) => b.height_cm - a.height_cm);
+                } else if (sortBy === 'height_asc') {
+                    filteredData.sort((a, b) => a.height_cm - b.height_cm);
+                } else if (sortBy === 'name_asc') {
+                    filteredData.sort((a, b) => a.name.localeCompare(b.name));
+                } else if (sortBy === 'age_asc') {
+                    filteredData.sort((a, b) => (a.birth_year || 9999) - (b.birth_year || 9999));
+                }
+
+                // 통계 업데이트
+                if (filteredData && filteredData.length > 0) {
+                    const currentYear = new Date().getFullYear();
+                    const oldestYear = Math.min(...filteredData.filter(c => c.birth_year).map(c => c.birth_year));
+                    const youngestYear = Math.max(...filteredData.filter(c => c.birth_year).map(c => c.birth_year));
+                    
+                    document.getElementById('lastUpdateTime').textContent = 
+                        `총 ${filteredData.length}명 | 연령대: ${currentYear - youngestYear}세~${currentYear - oldestYear}세`;
+
+                    // 테이블 렌더링
+                    tbody.innerHTML = filteredData.map(celebrity => {
+                        const age = celebrity.birth_year ? (currentYear - celebrity.birth_year) : '-';
+                        return `
+                            <tr>
+                                <td style="font-weight: 500;">${celebrity.name}</td>
+                                <td>${celebrity.occupation}</td>
+                                <td>${celebrity.birth_year || '-'}</td>
+                                <td>${age}</td>
+                                <td style="font-weight: 600; color: var(--primary-color);">${celebrity.height_cm}</td>
+                                <td>${celebrity.gender}</td>
+                            </tr>
+                        `;
+                    }).join('');
+                } else {
+                    document.getElementById('lastUpdateTime').textContent = '총 0명';
+
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="6" class="empty-state">
+                                <div class="empty-icon">👤</div>
+                                <p>검색 조건에 맞는 데이터가 없습니다.</p>
+                            </td>
+                        </tr>
+                    `;
+                }
+            } catch (e) {
+                console.error('예상치 못한 오류:', e);
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="empty-state">
+                            <div class="empty-icon">❌</div>
+                            <p>오류가 발생했습니다.</p>
+                            <p style="font-size: 0.9rem; margin-top: 10px;">${e.message}</p>
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        // ==============================
         // 유틸리티 함수
         // ==============================
         function formatDate(dateString) {
@@ -1125,22 +1319,46 @@
             // 데이터베이스 카드 로드
             loadDatabaseCards();
 
-            // 정렬 선택 변경 이벤트
+            // 금시세 - 정렬 선택 변경 이벤트
             const sortSelect = document.getElementById('sortSelect');
             if (sortSelect) {
                 sortSelect.addEventListener('change', loadGoldPrices);
             }
 
-            // 기간 선택 변경 이벤트
+            // 금시세 - 기간 선택 변경 이벤트
             const periodSelect = document.getElementById('periodSelect');
             if (periodSelect) {
                 periodSelect.addEventListener('change', loadGoldPrices);
             }
 
-            // 새로고침 버튼 이벤트
+            // 금시세 - 새로고침 버튼 이벤트
             const refreshBtn = document.getElementById('refreshBtn');
             if (refreshBtn) {
                 refreshBtn.addEventListener('click', loadGoldPrices);
+            }
+
+            // 키큰 유명인 - 정렬 선택 변경 이벤트
+            const celebritySortSelect = document.getElementById('celebritySortSelect');
+            if (celebritySortSelect) {
+                celebritySortSelect.addEventListener('change', loadCelebrities);
+            }
+
+            // 키큰 유명인 - 직업 필터 변경 이벤트
+            const occupationFilter = document.getElementById('occupationFilter');
+            if (occupationFilter) {
+                occupationFilter.addEventListener('change', loadCelebrities);
+            }
+
+            // 키큰 유명인 - 키 필터 변경 이벤트
+            const heightFilter = document.getElementById('heightFilter');
+            if (heightFilter) {
+                heightFilter.addEventListener('change', loadCelebrities);
+            }
+
+            // 키큰 유명인 - 새로고침 버튼 이벤트
+            const celebrityRefreshBtn = document.getElementById('celebrityRefreshBtn');
+            if (celebrityRefreshBtn) {
+                celebrityRefreshBtn.addEventListener('click', loadCelebrities);
             }
         });
     </script>

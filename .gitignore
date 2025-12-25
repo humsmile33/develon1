@@ -1,1 +1,10 @@
 package-lock.json
+database/databases_schema.sql
+database/gold/gold_prices.xlsx
+.gitignore
+database/gold/gold_prices.xlsx
+database/celebrities/add_celebrity_database_entry.sql
+database/celebrities/insert_celebrities_data.sql
+database/celebrities/tall_celebrities_schema.sql
+database/celebrities/tall_korean_celebrities.csv
+database/gold/gold_prices.xlsx
