@@ -467,8 +467,7 @@
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indmemd6bmlwZnZrY2dxbmZ3dnVrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2MjI4MzcsImV4cCI6MjA4MjE5ODgzN30.Vzy5mJLVBFnwYt1e0UXhdN3WZDK7nqsgNwcFuIs0mTE';
         
         // Supabase 클라이언트 초기화
-        const { createClient } = window.supabase;
-        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         // URL 파라미터에서 게시글 ID 가져오기
         const urlParams = new URLSearchParams(window.location.search);
@@ -485,10 +484,10 @@
 
             try {
                 // 조회수 증가
-                await supabase.rpc('increment_views', { post_id: parseInt(postId) });
+                await supabaseClient.rpc('increment_views', { post_id: parseInt(postId) });
 
                 // 게시글 조회
-                const { data: post, error } = await supabase
+                const { data: post, error } = await supabaseClient
                     .from('posts')
                     .select('*')
                     .eq('id', postId)
@@ -530,7 +529,7 @@
             if (!postId) return;
 
             try {
-                const { data: comments, error } = await supabase
+                const { data: comments, error } = await supabaseClient
                     .from('comments')
                     .select('*')
                     .eq('post_id', postId)
@@ -584,7 +583,7 @@
             }
 
             try {
-                const { data, error } = await supabase
+                const { data, error } = await supabaseClient
                     .from('comments')
                     .insert([{
                         post_id: parseInt(postId),
