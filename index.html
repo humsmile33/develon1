@@ -512,240 +512,50 @@
 
     <!-- Supabase 연동 스크립트 -->
     <script>
-        // ==============================
-        // Supabase 설정 (사용자 환경에 맞게 수정 필요)
-        // ==============================
-        const SUPABASE_URL = 'https://wfzgznipfvkcgqnfwvuk.supabase.co'; // Supabase 프로젝트 URL
-        const SUPABASE_ANON_KEY = 'sbp_60678a57b24d0c2cfad40be81aa75d3a6eae0bb2'; // Supabase Anon Key
-        
-        // Supabase 클라이언트 초기화
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // 모달 관련 요소 가져오기
+        const writeBtn = document.getElementById('writePostBtn');
+        const modalOverlay = document.getElementById('writeModal');
+        const closeBtn = document.getElementById('closeModal');
+        const cancelBtn = document.getElementById('cancelBtn');
 
-        // ==============================
-        // 게시글 목록 로드 함수
-        // ==============================
-        async function loadPosts() {
-            const tbody = document.getElementById('postsTableBody');
-            
-            try {
-                // Supabase에서 게시글 목록 조회
-                const { data: posts, error } = await supabase
-                    .from('posts')
-                    .select('*')
-                    .eq('is_deleted', false)
-                    .order('notice_type', { ascending: true, nullsFirst: false })
-                    .order('created_at', { ascending: false });
+        // 모달 열기
+        writeBtn.addEventListener('click', () => {
+            modalOverlay.classList.add('open');
+        });
 
-                if (error) {
-                    console.error('게시글 로드 오류:', error);
-                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">게시글 로드 실패: ' + error.message + '</td></tr>';
-                    return;
-                }
+        // 모달 닫기 함수
+        const closeModal = () => {
+            modalOverlay.classList.remove('open');
+        };
 
-                // 게시글 렌더링
-                if (posts && posts.length > 0) {
-                    tbody.innerHTML = posts.map(post => {
-                        const formattedDate = formatDate(post.created_at);
-                        const noticeBadge = post.notice_type !== 'none' 
-                            ? `<span class="notice-badge">${post.notice_type === 'notice' ? '공지' : '안내'}</span>`
-                            : '';
-                        
-                        return `
-                            <tr>
-                                <td>${noticeBadge || post.id}</td>
-                                <td><a href="post.html?id=${post.id}" class="post-title">${escapeHtml(post.title)}</a></td>
-                                <td>${escapeHtml(post.author)}</td>
-                                <td>${formattedDate}</td>
-                                <td>${post.views}</td>
-                            </tr>
-                        `;
-                    }).join('');
-                } else {
-                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">게시글이 없습니다.</td></tr>';
-                }
-            } catch (e) {
-                console.error('예상치 못한 오류:', e);
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">오류가 발생했습니다.</td></tr>';
-            }
-        }
+        // 닫기 버튼 클릭 시
+        closeBtn.addEventListener('click', closeModal);
+        cancelBtn.addEventListener('click', closeModal);
 
-        // ==============================
-        // 게시글 작성 함수
-        // ==============================
-        async function createPost() {
-            const titleInput = document.querySelector('input[placeholder="글 제목을 입력하세요"]');
-            const authorInput = document.querySelector('input[placeholder="이름을 입력하세요"]');
-            const contentInput = document.querySelector('textarea[placeholder="내용을 입력하세요"]');
-
-            const title = titleInput.value.trim();
-            const author = authorInput.value.trim();
-            const content = contentInput.value.trim();
-
-            if (!title || !author || !content) {
-                alert('제목, 작성자, 내용을 모두 입력해주세요.');
-                return;
-            }
-
-            try {
-                const { data, error } = await supabase
-                    .from('posts')
-                    .insert([{
-                        title: title,
-                        content: content,
-                        author: author,
-                        notice_type: 'none',
-                        views: 0
-                    }])
-                    .select();
-
-                if (error) {
-                    console.error('게시글 작성 오류:', error);
-                    alert('게시글 작성 실패: ' + error.message);
-                    return;
-                }
-
-                alert('게시글이 등록되었습니다!');
+        // 모달 바깥쪽 배경 클릭 시 닫기
+        modalOverlay.addEventListener('click', (e) => {
+            if (e.target === modalOverlay) {
                 closeModal();
-                
-                // 폼 초기화
-                titleInput.value = '';
-                authorInput.value = '';
-                contentInput.value = '';
-                
-                // 게시글 목록 새로고침
-                loadPosts();
-            } catch (e) {
-                console.error('예상치 못한 오류:', e);
-                alert('오류가 발생했습니다.');
-            }
-        }
-
-        // ==============================
-        // 검색 함수
-        // ==============================
-        async function searchPosts(keyword) {
-            const tbody = document.getElementById('postsTableBody');
-            
-            if (!keyword.trim()) {
-                loadPosts();
-                return;
-            }
-
-            try {
-                const { data: posts, error } = await supabase
-                    .from('posts')
-                    .select('*')
-                    .eq('is_deleted', false)
-                    .or(`title.ilike.%${keyword}%,author.ilike.%${keyword}%`)
-                    .order('notice_type', { ascending: true, nullsFirst: false })
-                    .order('created_at', { ascending: false });
-
-                if (error) {
-                    console.error('검색 오류:', error);
-                    return;
-                }
-
-                if (posts && posts.length > 0) {
-                    tbody.innerHTML = posts.map(post => {
-                        const formattedDate = formatDate(post.created_at);
-                        const noticeBadge = post.notice_type !== 'none' 
-                            ? `<span class="notice-badge">${post.notice_type === 'notice' ? '공지' : '안내'}</span>`
-                            : '';
-                        
-                        return `
-                            <tr>
-                                <td>${noticeBadge || post.id}</td>
-                                <td><a href="post.html?id=${post.id}" class="post-title">${escapeHtml(post.title)}</a></td>
-                                <td>${escapeHtml(post.author)}</td>
-                                <td>${formattedDate}</td>
-                                <td>${post.views}</td>
-                            </tr>
-                        `;
-                    }).join('');
-                } else {
-                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">검색 결과가 없습니다.</td></tr>';
-                }
-            } catch (e) {
-                console.error('검색 오류:', e);
-            }
-        }
-
-        // ==============================
-        // 유틸리티 함수
-        // ==============================
-        function formatDate(dateString) {
-            const date = new Date(dateString);
-            return date.toISOString().split('T')[0];
-        }
-
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-
-        // ==============================
-        // 페이지 로드 시 게시글 목록 로드 및 이벤트 리스너 설정
-        // ==============================
-        document.addEventListener('DOMContentLoaded', () => {
-            // 게시글 목록 로드
-            loadPosts();
-
-            // ==============================
-            // 모달 관련
-            // ==============================
-            const writeBtn = document.getElementById('writePostBtn');
-            const modalOverlay = document.getElementById('writeModal');
-            const closeBtn = document.getElementById('closeModal');
-            const cancelBtn = document.getElementById('cancelBtn');
-            const submitBtn = document.getElementById('submitPostBtn');
-            const searchInput = document.querySelector('.search-input');
-            const searchBtn = document.querySelector('.search-box button');
-
-            if (writeBtn) {
-                writeBtn.addEventListener('click', () => {
-                    modalOverlay.classList.add('open');
-                });
-            }
-
-            const closeModal = () => {
-                modalOverlay.classList.remove('open');
-            };
-
-            if (closeBtn) {
-                closeBtn.addEventListener('click', closeModal);
-            }
-            if (cancelBtn) {
-                cancelBtn.addEventListener('click', closeModal);
-            }
-
-            if (modalOverlay) {
-                modalOverlay.addEventListener('click', (e) => {
-                    if (e.target === modalOverlay) {
-                        closeModal();
-                    }
-                });
-            }
-
-            if (submitBtn) {
-                submitBtn.addEventListener('click', createPost);
-            }
-
-            // 검색 기능
-            if (searchBtn) {
-                searchBtn.addEventListener('click', () => {
-                    searchPosts(searchInput.value);
-                });
-            }
-
-            if (searchInput) {
-                searchInput.addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter') {
-                        searchPosts(searchInput.value);
-                    }
-                });
             }
         });
+
+        submitBtn.addEventListener('click', createPost);
+
+        // 검색 기능
+        searchBtn.addEventListener('click', () => {
+            searchPosts(searchInput.value);
+        });
+
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                searchPosts(searchInput.value);
+            }
+        });
+
+        // ==============================
+        // 페이지 로드 시 게시글 목록 로드
+        // ==============================
+        document.addEventListener('DOMContentLoaded', loadPosts);
     </script>
 </body>
 </html>
