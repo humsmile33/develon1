@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Modern Space - 게시글 상세</title>
+    <!-- Supabase 클라이언트 라이브러리 -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         /* --- CSS 변수 및 초기화 (디자인 시스템) --- */
         :root {
@@ -383,39 +385,27 @@
                 <!-- 게시글 헤더 -->
                 <div class="post-header">
                     <div class="post-title-row">
-                        <h1 class="post-title">프로젝트 시작 전에 기획서 어떻게 작성하시나요?</h1>
+                        <h1 class="post-title" id="postTitle">로딩 중...</h1>
                     </div>
                     <div class="post-meta">
                         <div class="post-meta-item">
                             <span class="post-meta-label">작성자:</span>
-                            <span>김철수</span>
+                            <span id="postAuthor">-</span>
                         </div>
                         <div class="post-meta-item">
                             <span class="post-meta-label">작성일:</span>
-                            <span>2024-05-19</span>
+                            <span id="postDate">-</span>
                         </div>
                         <div class="post-meta-item">
                             <span class="post-meta-label">조회수:</span>
-                            <span>45</span>
+                            <span id="postViews">-</span>
                         </div>
                     </div>
                 </div>
 
                 <!-- 게시글 내용 -->
-                <div class="post-content">
-                    <p>안녕하세요! 웹 개발을 시작한 지 얼마 안 된 초보 개발자입니다.</p>
-                    <p>현재 새로운 프로젝트를 시작하려고 하는데, 기획서를 어떻게 작성해야 할지 고민이 많습니다.</p>
-                    <p>경험 있는 분들이나 회사에서는 보통 어떤 항목을 포함해서 기획서를 작성하시나요?</p>
-                    <p>특히 다음과 같은 항목이 궁금합니다:</p>
-                    <ul style="margin-left: 20px; list-style: disc; margin-bottom: 15px;">
-                        <li>프로젝트 목표 및 범위</li>
-                        <li>기능 요구사항 목록</li>
-                        <li>기술 스택 선정 이유</li>
-                        <li>개발 일정 및 마일스톤</li>
-                        <li>예상되는 문제점과 해결 방안</li>
-                    </ul>
-                    <p>조언해 주시면 정말 감사하겠습니다!</p>
-                    <p>많은 답변 부탁드립니다. 🙏</p>
+                <div class="post-content" id="postContent">
+                    로딩 중...
                 </div>
 
                 <!-- 게시글 하단 버튼 -->
@@ -428,57 +418,24 @@
                 </div>
             </div>
 
-            <!-- 댓글 섹션 (디자인만) -->
+            <!-- 댓글 섹션 -->
             <div class="comments-section">
                 <div class="comments-header">
-                    댓글 <span class="comment-count">(3)</span>
+                    댓글 <span class="comment-count" id="commentCount">(0)</span>
                 </div>
                 
-                <div class="comment-list">
-                    <!-- 댓글 1 -->
-                    <div class="comment-item">
-                        <div class="comment-header">
-                            <span class="comment-author">이시니어</span>
-                            <span class="comment-date">2024-05-19 14:32</span>
-                        </div>
-                        <p class="comment-content">
-                            안녕하세요! 기획서 작성에 대한 경험을 공유해 드릴게요. 
-                            먼저 사용자 스토리(User Story)를 작성하는 것부터 시작하는 것을 추천합니다.
-                            "사용자로서, ~하고 싶다. 그래서 ~을 한다." 형식으로 작성하면 좋습니다.
-                        </p>
-                    </div>
-
-                    <!-- 댓글 2 -->
-                    <div class="comment-item">
-                        <div class="comment-header">
-                            <span class="comment-author">개발자A</span>
-                            <span class="comment-date">2024-05-19 15:45</span>
-                        </div>
-                        <p class="comment-content">
-                            저는 항상 와이어프레임을 먼저 그리고 기획서를 작성합니다. 
-                            시각적인 요소를 먼저 정리하고 나면 기능 명세가 훨씬 수월해져요.
-                            Figma나 Sketch 같은 툴을 추천합니다!
-                        </p>
-                    </div>
-
-                    <!-- 댓글 3 -->
-                    <div class="comment-item">
-                        <div class="comment-header">
-                            <span class="comment-author">코딩고수</span>
-                            <span class="comment-date">2024-05-19 18:20</span>
-                        </div>
-                        <p class="comment-content">
-                            팀 프로젝트라면 Notion이나 Confluence 같은 협업 툴을 사용하는 것도 좋아요.
-                            실시간으로 협업할 수 있어서 효율적입니다.
-                        </p>
+                <div class="comment-list" id="commentList">
+                    <div class="comment-item" style="text-align: center; color: #6b7280;">
+                        로딩 중...
                     </div>
                 </div>
 
                 <!-- 댓글 작성 폼 -->
                 <div class="comment-form">
-                    <textarea class="comment-textarea" placeholder="댓글을 입력하세요..."></textarea>
+                    <input type="text" id="commentAuthor" class="form-control" placeholder="작성자명" style="margin-bottom: 10px; width: 200px;">
+                    <textarea class="comment-textarea" id="commentContent" placeholder="댓글을 입력하세요..."></textarea>
                     <div class="comment-actions">
-                        <button class="btn btn-small">댓글 등록</button>
+                        <button class="btn btn-small" id="submitCommentBtn">댓글 등록</button>
                     </div>
                 </div>
             </div>
@@ -501,5 +458,185 @@
         </div>
     </footer>
 
+    <!-- Supabase 연동 스크립트 -->
+    <script>
+        // ==============================
+        // Supabase 설정 (사용자 환경에 맞게 수정 필요)
+        // ==============================
+        const SUPABASE_URL = 'https://wfzgznipfvkcgqnfwvuk.supabase.co'; // Supabase 프로젝트 URL
+        const SUPABASE_ANON_KEY = 'sbp_60678a57b24d0c2cfad40be81aa75d3a6eae0bb2'; // Supabase Anon Key
+        
+        // Supabase 클라이언트 초기화
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // URL 파라미터에서 게시글 ID 가져오기
+        const urlParams = new URLSearchParams(window.location.search);
+        const postId = urlParams.get('id');
+
+        // ==============================
+        // 게시글 로드 함수
+        // ==============================
+        async function loadPost() {
+            if (!postId) {
+                document.getElementById('postTitle').textContent = '게시글을 찾을 수 없습니다.';
+                return;
+            }
+
+            try {
+                // 조회수 증가
+                await supabase.rpc('increment_views', { post_id: parseInt(postId) });
+
+                // 게시글 조회
+                const { data: post, error } = await supabase
+                    .from('posts')
+                    .select('*')
+                    .eq('id', postId)
+                    .eq('is_deleted', false)
+                    .single();
+
+                if (error) {
+                    console.error('게시글 로드 오류:', error);
+                    document.getElementById('postTitle').textContent = '게시글 로드 실패: ' + error.message;
+                    return;
+                }
+
+                if (!post) {
+                    document.getElementById('postTitle').textContent = '게시글을 찾을 수 없습니다.';
+                    return;
+                }
+
+                // 게시글 내용 렌더링
+                document.getElementById('postTitle').textContent = post.title;
+                document.getElementById('postAuthor').textContent = post.author;
+                document.getElementById('postDate').textContent = formatDate(post.created_at);
+                document.getElementById('postViews').textContent = post.views;
+                
+                // 줄바꿈 처리하여 내용 표시
+                document.getElementById('postContent').innerHTML = post.content.replace(/\n/g, '<br>');
+
+                // 댓글 로드
+                loadComments();
+            } catch (e) {
+                console.error('예상치 못한 오류:', e);
+                document.getElementById('postTitle').textContent = '오류가 발생했습니다.';
+            }
+        }
+
+        // ==============================
+        // 댓글 로드 함수
+        // ==============================
+        async function loadComments() {
+            if (!postId) return;
+
+            try {
+                const { data: comments, error } = await supabase
+                    .from('comments')
+                    .select('*')
+                    .eq('post_id', postId)
+                    .eq('is_deleted', false)
+                    .order('created_at', { ascending: true });
+
+                if (error) {
+                    console.error('댓글 로드 오류:', error);
+                    document.getElementById('commentList').innerHTML = '<div class="comment-item" style="text-align: center; color: #6b7280;">댓글 로드 실패</div>';
+                    return;
+                }
+
+                document.getElementById('commentCount').textContent = `(${comments.length})`;
+
+                if (comments && comments.length > 0) {
+                    document.getElementById('commentList').innerHTML = comments.map(comment => `
+                        <div class="comment-item">
+                            <div class="comment-header">
+                                <span class="comment-author">${escapeHtml(comment.author)}</span>
+                                <span class="comment-date">${formatDateTime(comment.created_at)}</span>
+                            </div>
+                            <p class="comment-content">${escapeHtml(comment.content)}</p>
+                        </div>
+                    `).join('');
+                } else {
+                    document.getElementById('commentList').innerHTML = '<div class="comment-item" style="text-align: center; color: #6b7280;">댓글이 없습니다. 첫 댓글을 작성해주세요!</div>';
+                }
+            } catch (e) {
+                console.error('댓글 로드 오류:', e);
+            }
+        }
+
+        // ==============================
+        // 댓글 작성 함수
+        // ==============================
+        async function createComment() {
+            const authorInput = document.getElementById('commentAuthor');
+            const contentInput = document.getElementById('commentContent');
+
+            const author = authorInput.value.trim();
+            const content = contentInput.value.trim();
+
+            if (!author || !content) {
+                alert('작성자명과 댓글 내용을 입력해주세요.');
+                return;
+            }
+
+            if (!postId) {
+                alert('게시글 ID가 없습니다.');
+                return;
+            }
+
+            try {
+                const { data, error } = await supabase
+                    .from('comments')
+                    .insert([{
+                        post_id: parseInt(postId),
+                        author: author,
+                        content: content
+                    }])
+                    .select();
+
+                if (error) {
+                    console.error('댓글 작성 오류:', error);
+                    alert('댓글 작성 실패: ' + error.message);
+                    return;
+                }
+
+                alert('댓글이 등록되었습니다!');
+                
+                // 폼 초기화
+                contentInput.value = '';
+                
+                // 댓글 목록 새로고침
+                loadComments();
+            } catch (e) {
+                console.error('댓글 작성 오류:', e);
+                alert('오류가 발생했습니다.');
+            }
+        }
+
+        // ==============================
+        // 유틸리티 함수
+        // ==============================
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toISOString().split('T')[0];
+        }
+
+        function formatDateTime(dateString) {
+            const date = new Date(dateString);
+            return date.toISOString().replace('T', ' ').substring(0, 16);
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // ==============================
+        // 이벤트 리스너
+        // ==============================
+        document.getElementById('submitCommentBtn').addEventListener('click', createComment);
+
+        // 페이지 로드 시 게시글 로드
+        document.addEventListener('DOMContentLoaded', loadPost);
+    </script>
 </body>
 </html>
