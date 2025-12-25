@@ -522,7 +522,7 @@
         // ==============================
         // 전역 변수 선언
         // ==============================
-        let writeBtn, modalOverlay, closeBtn, cancelBtn, submitBtn, searchInput, searchBtn, closeModal;
+        let writeBtn, modalOverlay, closeBtn, cancelBtn, submitBtn, searchInput, searchBtn;
 
         // ==============================
         // 게시글 목록 로드 함수
@@ -613,7 +613,7 @@
                 contentInput.value = '';
                 
                 // 모달 닫기
-                closeModal();
+                hideModal();
                 
                 // 게시글 목록 새로고침
                 loadPosts();
@@ -690,7 +690,7 @@
         // ==============================
         // 모달 닫기 함수
         // ==============================
-        function closeModal() {
+        function hideModal() {
             if (modalOverlay) {
                 modalOverlay.classList.remove('open');
             }
@@ -733,18 +733,18 @@
 
             // 닫기 버튼 이벤트
             if (closeBtn) {
-                closeBtn.addEventListener('click', closeModal);
+                closeBtn.addEventListener('click', hideModal);
             }
 
             if (cancelBtn) {
-                cancelBtn.addEventListener('click', closeModal);
+                cancelBtn.addEventListener('click', hideModal);
             }
 
             // 모달 바깥쪽 클릭 시 닫기
             if (modalOverlay) {
                 modalOverlay.addEventListener('click', function(e) {
                     if (e.target === modalOverlay) {
-                        closeModal();
+                        hideModal();
                     }
                 });
             }
