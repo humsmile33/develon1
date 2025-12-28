@@ -8,7 +8,7 @@ const SUPABASE_CONFIG = {
 };
 
 // Supabase 클라이언트 초기화
-const supabase = window.supabase.createClient(
+const excavatorSupabase = window.supabase.createClient(
     SUPABASE_CONFIG.url,
     SUPABASE_CONFIG.anonKey
 );

@@ -6,7 +6,7 @@ const ExcavatorDB = {
     // 제조사 목록 가져오기
     async getManufacturers() {
         try {
-            const { data, error } = await supabase
+            const { data, error } = await excavatorSupabase
                 .from('manufacturers')
                 .select('*')
                 .order('name');
@@ -22,7 +22,7 @@ const ExcavatorDB = {
     // 모든 굴착기 모델 가져오기
     async getAllExcavators() {
         try {
-            const { data, error } = await supabase
+            const { data, error } = await excavatorSupabase
                 .from('excavators')
                 .select(`
                     *,
@@ -46,7 +46,7 @@ const ExcavatorDB = {
     // 필터링된 굴착기 모델 가져오기
     async getFilteredExcavators(filters) {
         try {
-            let query = supabase
+            let query = excavatorSupabase
                 .from('excavators')
                 .select(`
                     *,
@@ -99,7 +99,7 @@ const ExcavatorDB = {
     // ID로 굴착기 모델 가져오기
     async getExcavatorById(id) {
         try {
-            const { data, error } = await supabase
+            const { data, error } = await excavatorSupabase
                 .from('excavators')
                 .select(`
                     *,
@@ -124,7 +124,7 @@ const ExcavatorDB = {
     // 여러 ID로 굴착기 모델 가져오기
     async getExcavatorsByIds(ids) {
         try {
-            const { data, error } = await supabase
+            const { data, error } = await excavatorSupabase
                 .from('excavators')
                 .select(`
                     *,
@@ -147,7 +147,7 @@ const ExcavatorDB = {
     // 전체 모델 수 가져오기
     async getTotalModelCount() {
         try {
-            const { count, error } = await supabase
+            const { count, error } = await excavatorSupabase
                 .from('excavators')
                 .select('*', { count: 'exact', head: true });
 
