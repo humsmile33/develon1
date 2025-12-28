@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>글로벌 소형 굴착기 제원 비교 플랫폼 | Modern Space</title>
+    <!-- Supabase 클라이언트 라이브러리 -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- PDF 생성 라이브러리 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- 아이콘 라이브러리 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- 헤더 영역 -->
+    <header class="header">
+        <div class="container header-inner">
+            <a href="../index.html" class="logo">
+                <i class="fas fa-home"></i> Modern Space
+            </a>
+            <nav class="nav">
+                <ul>
+                    <li><a href="../index.html">홈</a></li>
+                    <li><a href="../self-introduction/index.html">소개</a></li>
+                    <li><a href="../index.html#board">게시판</a></li>
+                    <li><a href="../database.html">데이터베이스</a></li>
+                    <li><a href="#" class="active">굴착기 비교</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <!-- 히어로 섹션 -->
+        <section class="hero">
+            <div class="container">
+                <h1>글로벌 소형 굴착기 제원 비교</h1>
+                <p>9개 글로벌 제조사의 11톤 이하 굴착기 모델을 한눈에 비교하세요.<br>미터법/야드파운드법 자동 변환으로 정확한 데이터를 제공합니다.</p>
+                <div class="hero-stats">
+                    <div class="stat-item">
+                        <span class="stat-number" id="totalModels">0</span>
+                        <span class="stat-label">모델</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">9</span>
+                        <span class="stat-label">제조사</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">11t</span>
+                        <span class="stat-label">이하</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 메인 컨텐츠 -->
+        <section class="container main-content">
+            <div class="content-layout">
+                <!-- 사이드바 필터 -->
+                <aside class="sidebar">
+                    <div class="filter-section">
+                        <h3 class="filter-title">
+                            <i class="fas fa-filter"></i> 필터
+                        </h3>
+                        
+                        <!-- 제조사 필터 -->
+                        <div class="filter-group">
+                            <h4>제조사</h4>
+                            <div class="checkbox-group" id="manufacturerFilter">
+                                <!-- JavaScript로 동적 생성 -->
+                            </div>
+                        </div>
+
+                        <!-- 체급 필터 -->
+                        <div class="filter-group">
+                            <h4>체급</h4>
+                            <div class="checkbox-group" id="weightClassFilter">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" value="mini" checked>
+                                    <span>미니 (0-2톤)</span>
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" value="small" checked>
+                                    <span>소형 (2-6톤)</span>
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" value="compact" checked>
+                                    <span>중소형 (6-11톤)</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- 중량 범위 필터 -->
+                        <div class="filter-group">
+                            <h4>운전 중량: <span id="weightRangeValue">0 - 11,000 kg</span></h4>
+                            <div class="range-slider">
+                                <input type="range" id="weightMinRange" min="0" max="11000" value="0">
+                                <input type="range" id="weightMaxRange" min="0" max="11000" value="11000">
+                            </div>
+                        </div>
+
+                        <!-- 검색 -->
+                        <div class="filter-group">
+                            <h4>모델명 검색</h4>
+                            <input type="text" id="searchInput" class="search-input" placeholder="모델명 입력...">
+                        </div>
+
+                        <button class="btn btn-primary btn-block" id="applyFilter">
+                            <i class="fas fa-check"></i> 필터 적용
+                        </button>
+                        <button class="btn btn-outline btn-block" id="resetFilter">
+                            <i class="fas fa-redo"></i> 초기화
+                        </button>
+                    </div>
+                </aside>
+
+                <!-- 모델 리스트 -->
+                <div class="main-panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title">
+                            <i class="fas fa-list"></i> 모델 목록
+                            <span class="model-count" id="modelCount">(0개)</span>
+                        </h2>
+                        <div class="unit-toggle">
+                            <label class="toggle-label">단위 표시:</label>
+                            <button class="toggle-btn active" data-unit="metric">미터법</button>
+                            <button class="toggle-btn" data-unit="imperial">야드파운드법</button>
+                        </div>
+                    </div>
+
+                    <div class="model-grid" id="modelGrid">
+                        <!-- JavaScript로 동적 생성 -->
+                        <div class="loading">로딩 중...</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 비교함 (Dock) -->
+        <div class="comparison-dock" id="comparisonDock">
+            <div class="dock-content">
+                <div class="dock-title">
+                    <i class="fas fa-balance-scale"></i> 비교함
+                    <span class="dock-count" id="dockCount">0/4</span>
+                </div>
+                <div class="dock-items" id="dockItems">
+                    <div class="empty-dock">
+                        <p>비교할 모델을 선택하세요 (최대 4개)</p>
+                    </div>
+                </div>
+                <div class="dock-actions">
+                    <button class="btn btn-danger" id="clearDock">
+                        <i class="fas fa-trash"></i> 비우기
+                    </button>
+                    <button class="btn btn-primary" id="compareBtn" disabled>
+                        <i class="fas fa-columns"></i> 비교하기
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 비교 모달 -->
+    <div class="modal-overlay" id="comparisonModal">
+        <div class="modal comparison-modal">
+            <div class="modal-header">
+                <h3 class="modal-title">
+                    <i class="fas fa-columns"></i> 제원 비교
+                </h3>
+                <button class="close-btn" id="closeComparisonModal">&times;</button>
+            </div>
+            <div class="modal-body" id="comparisonContent">
+                <!-- 비교 테이블이 여기에 렌더링됨 -->
+            </div>
+            <div class="modal-footer">
+                <div class="footer-actions">
+                    <label class="checkbox-label diff-toggle">
+                        <input type="checkbox" id="diffOnlyToggle">
+                        <span>차이점만 보기</span>
+                    </label>
+                    <div>
+                        <button class="btn btn-outline" id="printBtn">
+                            <i class="fas fa-print"></i> 인쇄
+                        </button>
+                        <button class="btn btn-primary" id="downloadPdfBtn">
+                            <i class="fas fa-file-pdf"></i> PDF 다운로드
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 토스트 메시지 -->
+    <div class="toast" id="toast">
+        <i class="fas fa-info-circle"></i>
+        <span id="toastMessage">메시지</span>
+    </div>
+
+    <!-- 푸터 -->
+    <footer>
+        <div class="container footer-content">
+            <div class="footer-info">
+                <p><strong>Modern Space</strong></p>
+                <p>글로벌 소형 굴착기 제원 비교 플랫폼</p>
+                <p>© 2024 Modern Space. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript 모듈 -->
+    <script src="js/config.js"></script>
+    <script src="js/database.js"></script>
+    <script src="js/unit-converter.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

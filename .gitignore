@@ -9,3 +9,4 @@ database/celebrities/tall_celebrities_schema.sql
 database/celebrities/tall_korean_celebrities.csv
 database/gold/gold_prices.xlsx
 self-introduction/personal.json
+package-lock.zip
